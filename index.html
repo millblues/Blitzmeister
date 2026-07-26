@@ -2,1455 +2,2846 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Blitz Meister</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<title>BlitzMeister</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  /* Board — soft sage green & warm grey */
-  --light-sq:#d8e0c8; --dark-sq:#7a8f6a;
-  --hl-light:#c8d96e; --hl-dark:#8fa83a;
-  /* App chrome — warm off-white / light mode inspired by screenshot */
-  --bg:#e8e8e0; --surface:#f0f0e8; --surface2:#d8d8d0;
-  --accent:#4a6b3a; --accent-dim:rgba(74,107,58,.12);
-  --accent-btn:#5a7a48; --accent-btn-hover:#4a6b3a;
-  --text:#2a2a22; --muted:#7a7a6a; --border:rgba(0,0,0,.1);
-  --green:#3a7a3a; --red:#b04040;
-  --radius:12px;
+  --bg:#F1EFE5;
+  --card:#FFFFFF;
+  --card-border:#E4E0D2;
+  --green:#5B7F4A;
+  --green-dark:#456238;
+  --green-soft:#EAF0E1;
+  --green-softer:#F4F7EF;
+  --ink:#20241A;
+  --ink-muted:#767E6C;
+  --ink-faint:#A6AC9C;
+  --board-light:#EDECD3;
+  --board-dark:#77945F;
+  --board-light-hi:#F4EE9C;
+  --board-dark-hi:#BACB5A;
+  --red:#C24F3D;
+  --red-soft:#FBEBE7;
+  --amber:#C9902E;
+  --amber-soft:#FBF1E1;
+  --radius-lg:22px;
+  --radius-md:16px;
+  --radius-sm:11px;
+  --shadow:0 2px 14px rgba(30,35,20,0.07);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
 }
-html,body{height:100%;-webkit-text-size-adjust:100%;}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100%;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font);height:100%;overscroll-behavior-y:none;}
+body{-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;}
+input,textarea{font-family:inherit;}
+.hidden{display:none !important;}
+#app{max-width:520px;margin:0 auto;min-height:100vh;padding-bottom:calc(28px + var(--safe-bottom));display:flex;flex-direction:column;}
 
-/* ── HEADER ── */
-header{padding:.75rem 1.2rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;flex-shrink:0;}
-.logo{display:flex;align-items:center;gap:.5rem;}
-.logo-icon{font-size:1.4rem;line-height:1;}
-.logo-text{font-size:1.15rem;font-weight:700;letter-spacing:-.02em;color:var(--text);}
-.logo-text span{color:var(--accent);}
-.hdr-btns{display:flex;gap:.35rem;flex-wrap:wrap;}
+/* ---------- Header ---------- */
+.topbar{padding:calc(16px + var(--safe-top)) 20px 10px;display:flex;align-items:center;gap:10px;}
+.brand{display:flex;align-items:center;gap:9px;font-size:27px;font-weight:800;letter-spacing:-0.02em;}
+.brand .pawn{font-size:25px;line-height:1;}
+.brand-word{display:inline-flex;}
+.brand .blitz{color:var(--ink);}
+.brand .meister{color:var(--green);}
 
-/* ── BUTTONS ── */
-.btn{font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;padding:.4rem .85rem;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .15s;background:var(--surface2);color:var(--text);-webkit-appearance:none;appearance:none;letter-spacing:.01em;}
-.btn:hover{background:#ccccC4;border-color:rgba(0,0,0,.18);}
-.btn:active{transform:scale(.97);opacity:.85;}
-.btn-primary{background:var(--accent-btn);border-color:var(--accent-btn);color:#fff;font-weight:600;}
-.btn-primary:hover{background:var(--accent-btn-hover);border-color:var(--accent-btn-hover);}
-.btn-ghost{background:transparent;border-color:var(--border);}
-.btn-ghost:hover{background:rgba(0,0,0,.06);}
-.btn-sm{font-size:.7rem;padding:.22rem .55rem;border-radius:6px;background:rgba(0,0,0,.06);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;-webkit-appearance:none;transition:all .15s;}
-.btn-sm:hover{background:rgba(0,0,0,.1);color:var(--text);}
-.btn-sm:active{opacity:.7;}
-.btn-sm.cat-active{background:var(--accent-btn);border-color:var(--accent-btn);color:#fff;}
-
-/* ── LAYOUT ── */
-main{flex:1;display:flex;flex-direction:column;gap:.65rem;padding:.75rem;padding-left:1.5rem;max-width:540px;margin:0 auto;width:100%;}
-
-/* ── STATUS BAR ── */
-.status-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;}
-.status-name{font-size:.95rem;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
-.status-msg{font-size:.78rem;color:var(--muted);margin-top:.25rem;min-height:1.3em;transition:color .2s;}
-.status-msg.correct{color:var(--green);}
-.status-msg.wrong{color:var(--red);}
-.progress-row{display:flex;align-items:center;gap:.6rem;margin-top:.6rem;}
-.progress-track{flex:1;background:rgba(0,0,0,.1);border-radius:99px;height:4px;overflow:hidden;}
-.progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .35s ease;width:0%;}
-.move-counter{font-size:.68rem;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;}
-.color-row{display:flex;gap:.4rem;margin-top:.6rem;}
-.color-btn{flex:1;padding:.32rem;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.75rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;-webkit-appearance:none;font-weight:500;}
-.color-btn.w-active{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.2);color:var(--text);}
-.color-btn.b-active{background:rgba(0,0,0,.12);border-color:rgba(0,0,0,.2);color:var(--text);}
-
-/* ── BOARD ── */
-.board-outer{width:100%;position:relative;border-radius:6px;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 6px 24px rgba(0,0,0,.18);flex-shrink:0;}
-.board-outer::before{content:'';display:block;padding-top:100%;}
-.board-inner{position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,12.5%);grid-template-rows:repeat(8,12.5%);}
-.sq{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.sq.light{background:var(--light-sq);}
-.sq.dark{background:var(--dark-sq);}
-.sq.hl-sel{background:rgba(90,160,50,.5)!important;}
-.sq.hl-mate{background:rgba(200,30,30,.75)!important;}
-.sq.hl-from.light,.sq.hl-to.light{background:var(--hl-light);}
-.sq.hl-from.dark,.sq.hl-to.dark{background:var(--hl-dark);}
-.sq.drop-ok{box-shadow:inset 0 0 0 3px rgba(74,107,58,.7);}
-.lbl-f{position:absolute;bottom:1px;right:2px;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;opacity:.6;pointer-events:none;line-height:1;}
-.lbl-r{position:absolute;top:1px;left:2px;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;opacity:.6;pointer-events:none;line-height:1;}
-.sq.light .lbl-f,.sq.light .lbl-r{color:var(--dark-sq);}
-.sq.dark .lbl-f,.sq.dark .lbl-r{color:var(--light-sq);}
-.dot{position:absolute;width:28%;height:28%;border-radius:50%;background:rgba(0,0,0,.18);pointer-events:none;z-index:2;}
-.ring{position:absolute;width:88%;height:88%;border-radius:50%;border:4px solid rgba(0,0,0,.18);pointer-events:none;z-index:2;}
-.piece{position:absolute;inset:3%;pointer-events:none;z-index:3;}
-.piece svg{width:100%;height:100%;display:block;}
-.piece.dragging{opacity:0;}
-
-/* ── GHOST ── */
-#ghost{position:fixed;pointer-events:none;z-index:9999;display:none;transform:translate(-50%,-50%);filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));}
-#ghost svg{display:block;}
-
-/* ── ACTION ROW ── */
-.action-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
-.action-row .btn{text-align:center;padding:.5rem;}
-
-/* ── MOVE HISTORY ── */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-.card-hdr{padding:.5rem .9rem;background:var(--surface2);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;display:flex;align-items:center;justify-content:space-between;}
-.history-body{padding:.5rem .9rem;font-family:'DM Mono',monospace;font-size:.78rem;line-height:2.1;max-height:84px;overflow-y:auto;}
-.mv-num{color:var(--muted);margin-right:3px;}
-.mv-san{margin-right:8px;color:var(--text);}
-.mv-san.done{color:var(--accent);}
-.mv-san.cur{color:#fff;background:var(--accent);border-radius:3px;padding:0 4px;}
-.mv-san.clickable{cursor:pointer;border-radius:3px;transition:background .12s;}
-.mv-san.clickable:hover{background:var(--accent-dim);}
-.mv-san.review{color:var(--muted);background:rgba(0,0,0,.07);border-radius:3px;padding:0 4px;}
-
-/* ── REVIEW NAV ── */
-.review-nav{display:flex;align-items:center;gap:.3rem;padding:.3rem .9rem .45rem;background:var(--surface2);border-top:1px solid var(--border);}
-.rev-btn{background:none;border:1px solid var(--border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);font-size:.85rem;transition:all .15s;flex-shrink:0;}
-.rev-btn:hover{background:rgba(0,0,0,.08);}
-.rev-btn:active{opacity:.7;}
-.rev-btn:disabled{opacity:.3;cursor:default;}
-.rev-label{font-size:.68rem;color:var(--muted);flex:1;text-align:center;font-family:'DM Mono',monospace;}
-.rev-resume{font-size:.68rem;padding:.18rem .55rem;border-radius:5px;background:var(--accent-btn);color:#fff;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;transition:all .15s;flex-shrink:0;}
-.rev-resume:hover{background:var(--accent-btn-hover);}
-.review-nav.hidden{display:none;}
-
-/* ── STATS ── */
-.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
-.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;}
-.stat-icon{font-size:1.4rem;line-height:1;}
-.stat-right{}
-.stat-num{font-size:1.5rem;font-weight:700;line-height:1;font-family:'DM Mono',monospace;}
-.stat-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
-
-/* ── PANELS ── */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-.panel-hdr{padding:.55rem .9rem;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;gap:.5rem;cursor:pointer;user-select:none;}
-.panel-hdr-left{display:flex;align-items:center;gap:.5rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;}
-.panel-hdr-right{display:flex;align-items:center;gap:.35rem;}
-.panel-toggle{font-size:.8rem;color:var(--muted);transition:transform .2s;display:inline-block;}
-.panel.open .panel-toggle{transform:rotate(180deg);}
-.panel-body{display:none;}
-.panel.open .panel-body{display:block;}
-.openings-list{max-height:210px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;}
-.op-item{padding:.55rem .9rem;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:background .1s;}
-.op-item:active,.op-item:hover{background:rgba(0,0,0,.05);}
-.op-item.active{background:var(--accent-dim);border-left:2px solid var(--accent);}
-.op-name{font-size:.82rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
-.op-color-badge{font-size:.6rem;padding:.1rem .35rem;border-radius:4px;font-weight:600;letter-spacing:.04em;flex-shrink:0;}
-.op-color-badge.white{background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.12);color:#444;}
-.op-color-badge.black{background:rgba(0,0,0,.12);color:#555;}
-.op-moves{font-size:.68rem;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;}
-.op-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:2px 6px;flex-shrink:0;transition:color .15s;}
-.op-del:hover{color:var(--red);}
-.empty-state{padding:2rem 1rem;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.7;}
-
-/* ── PGN IMPORT ── */
-.pgn-body{padding:.75rem .9rem;display:flex;flex-direction:column;gap:.5rem;}
-.pgn-body textarea{width:100%;height:82px;background:rgba(0,0,0,.05);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:.73rem;padding:.5rem;resize:none;outline:none;-webkit-appearance:none;transition:border-color .15s;}
-.pgn-body textarea:focus{border-color:var(--accent);}
-.pgn-row{display:flex;gap:.4rem;align-items:center;}
-.pgn-row2{display:flex;gap:.4rem;align-items:center;}
-.pgn-name{flex:1;background:rgba(0,0,0,.05);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'Inter',sans-serif;font-size:.8rem;padding:.38rem .6rem;outline:none;-webkit-appearance:none;transition:border-color .15s;}
-.pgn-name::placeholder{color:var(--muted);}
-.pgn-name:focus{border-color:var(--accent);}
-.color-picker{display:flex;gap:.3rem;background:rgba(0,0,0,.05);border:1px solid var(--border);border-radius:7px;padding:.2rem;}
-.cp-opt{flex:1;padding:.25rem .5rem;border-radius:5px;border:none;background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s;white-space:nowrap;-webkit-appearance:none;}
-.cp-opt.active{background:var(--accent-btn);color:#fff;font-weight:600;}
-
-/* ── MODAL ── */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);}
-.modal-overlay.open{display:flex;}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.75rem 1.5rem;max-width:360px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);}
-.modal-emoji{font-size:2.5rem;margin-bottom:.5rem;}
-.modal h2{font-size:1.2rem;font-weight:700;margin-bottom:.4rem;letter-spacing:-.02em;color:var(--text);}
-.modal p{color:var(--muted);font-size:.82rem;margin-bottom:1.2rem;line-height:1.6;}
-.modal-btns{display:flex;flex-direction:column;gap:.4rem;}
-.modal-btns .btn{width:100%;padding:.55rem;font-size:.82rem;}
-
-/* ── EVAL BAR ── */
-.eval-bar-wrap{display:none;flex-direction:column;align-items:center;gap:4px;width:12px;position:absolute;left:-20px;top:0;bottom:0;}
-.eval-bar-wrap.visible{display:flex;}
-.eval-bar{flex:1;width:12px;background:#1a1a1a;border-radius:0;overflow:hidden;position:relative;border:1px solid var(--border);}
-.eval-bar-fill{width:100%;background:#fff;border-radius:0;position:absolute;bottom:0;left:0;transition:height .4s ease;}
-.eval-label{font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted);white-space:nowrap;writing-mode:vertical-rl;transform:rotate(180deg);line-height:1;}
-.eval-spinner{width:10px;height:10px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:none;flex-shrink:0;}
-.eval-spinner.active{display:block;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* ── EDIT MODE ── */
-.edit-mode-banner{display:none;background:var(--accent);color:#fff;font-size:.75rem;font-weight:600;text-align:center;padding:.35rem 1rem;letter-spacing:.04em;}
-.edit-mode-banner.visible{display:block;}
-.btn-edit-active{background:var(--accent-btn)!important;border-color:var(--accent-btn)!important;color:#fff!important;}
-#edit-mode-bar{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.6rem .9rem;gap:.5rem;flex-direction:column;}
-#edit-mode-bar.visible{display:flex;}
-#edit-mode-bar .em-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;}
-#edit-mode-bar .em-moves{font-family:'DM Mono',monospace;font-size:.78rem;color:var(--text);min-height:1.4em;}
-#edit-mode-bar .em-btns{display:flex;gap:.4rem;}
-
-/* ── DESKTOP ── */
-@media(min-width:700px){
-  main{flex-direction:row;flex-wrap:wrap;max-width:1180px;padding:1.1rem 1.5rem;gap:.9rem;align-items:flex-start;}
-  .board-col{flex:0 0 auto;width:min(400px,44vw);display:flex;flex-direction:column;gap:.65rem;}
-  .side-col{flex:1;min-width:220px;max-width:320px;display:flex;flex-direction:column;gap:.65rem;}
-  .panel-body{display:block!important;}
-  .panel-toggle{display:none;}
-  .openings-list{max-height:240px;}
-  .history-body{max-height:110px;}
+/* ---------- Buttons ---------- */
+.btn{
+  border:1px solid var(--card-border);background:var(--card);color:var(--ink);
+  border-radius:999px;padding:13px 18px;font-size:15.5px;font-weight:600;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  cursor:pointer;user-select:none;transition:transform .08s ease, opacity .12s ease;
 }
+.btn:active{transform:scale(0.96);opacity:.85;}
+.btn-primary{background:var(--green);border-color:var(--green);color:#fff;}
+.btn-block{width:100%;}
+.btn-sm{padding:9px 14px;font-size:14px;}
+.btn-icon{width:44px;height:44px;padding:0;border-radius:14px;flex:none;font-size:18px;}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-muted);}
+.btn-danger{color:var(--red);}
+.row-gap{display:flex;gap:10px;}
+.row-gap > .btn{flex:1;min-width:0;}
+
+/* ---------- Library ---------- */
+.section-pad{padding:0 20px;}
+.subtitle{color:var(--ink-muted);font-size:14.5px;margin:0 0 18px;}
+.lib-actions{display:flex;gap:10px;margin-bottom:18px;}
+.opening-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.opening-card{
+  background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-md);
+  padding:14px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);cursor:pointer;
+}
+.opening-card:active{transform:scale(0.99);}
+.opening-card .oc-icon{
+  width:44px;height:44px;border-radius:12px;background:var(--green-soft);color:var(--green-dark);
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;
+}
+.opening-card .oc-main{flex:1;min-width:0;}
+.opening-card .oc-name{font-weight:700;font-size:16px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.opening-card .oc-meta{font-size:13px;color:var(--ink-muted);display:flex;gap:8px;align-items:center;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--green-soft);color:var(--green-dark);}
+.badge.black{background:#26281F;color:#fff;}
+.oc-menu-btn{background:transparent;border:none;color:var(--ink-faint);font-size:20px;padding:6px 4px;cursor:pointer;flex:none;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--ink-muted);}
+.empty-state .es-icon{font-size:42px;margin-bottom:10px;}
+
+/* ---------- Card / Info panel ---------- */
+.info-card{
+  background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-lg);
+  padding:20px;margin:0 20px 16px;box-shadow:var(--shadow);
+}
+.info-title{font-weight:800;font-size:18px;margin:0 0 6px;}
+.info-text{color:var(--ink-muted);font-size:14.5px;line-height:1.45;margin:0 0 14px;}
+.progressbar{height:7px;background:var(--green-soft);border-radius:99px;overflow:hidden;margin-bottom:8px;}
+.progressbar > div{height:100%;background:var(--green);border-radius:99px;transition:width .25s ease;}
+.progress-label{font-size:12.5px;color:var(--ink-muted);text-align:right;margin-bottom:14px;}
+
+/* ---------- Trainer top ---------- */
+.trainer-top{display:flex;align-items:center;gap:10px;padding:calc(14px + var(--safe-top)) 20px 4px;}
+.trainer-title{flex:1;min-width:0;font-weight:800;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mode-toggle{display:flex;background:var(--green-soft);border-radius:999px;padding:4px;margin:10px 20px 14px;}
+.mode-toggle button{flex:1;border:none;background:transparent;padding:10px 0;border-radius:999px;font-weight:700;font-size:14.5px;color:var(--green-dark);cursor:pointer;}
+.mode-toggle button.active{background:var(--green);color:#fff;}
+
+/* ---------- Board ---------- */
+.board-wrap{padding:0 16px;margin-bottom:14px;}
+.board{
+  width:100%;aspect-ratio:1/1;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
+  border-radius:14px;overflow:hidden;box-shadow:var(--shadow);position:relative;touch-action:none;
+}
+.square{position:relative;display:flex;align-items:center;justify-content:center;}
+.square.light{background:var(--board-light);}
+.square.dark{background:var(--board-dark);}
+.square.hi-from{background:var(--board-light-hi) !important;}
+.square.hi-to{background:var(--board-light-hi) !important;}
+.square.dark.hi-from,.square.dark.hi-to{background:var(--board-dark-hi) !important;}
+.square .coord{position:absolute;font-size:9.5px;font-weight:700;opacity:.55;top:2px;left:3px;}
+.square.light .coord{color:var(--board-dark);}
+.square.dark .coord{color:var(--board-light);}
+.square .coord.rank{top:auto;left:auto;bottom:2px;right:3px;}
+.dot{width:26%;height:26%;border-radius:50%;background:rgba(30,35,20,0.28);position:absolute;pointer-events:none;}
+.dot.capture{width:100%;height:100%;border-radius:0;background:transparent;box-shadow:inset 0 0 0 4px rgba(30,35,20,0.28);position:absolute;pointer-events:none;}
+.piece{width:min(11.4vw,54px);height:min(11.4vw,54px);display:flex;align-items:center;justify-content:center;user-select:none;cursor:grab;position:relative;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));}
+.piece-svg{width:86%;height:86%;overflow:visible;}
+.piece.white .piece-svg{fill:#FFFFFF;stroke:#2B2F22;stroke-width:3;stroke-linejoin:round;stroke-linecap:round;}
+.piece.black .piece-svg{fill:#14150E;stroke:#14150E;stroke-width:0.6;stroke-linejoin:round;}
+.piece.dragging{position:fixed;z-index:999;pointer-events:none;transform:translate(-50%,-50%);cursor:grabbing;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3));}
+.flash-correct{animation:flashGreen .5s ease;}
+.flash-incorrect{animation:flashRed .5s ease;}
+@keyframes flashGreen{0%{background:#8FCB7A !important;}100%{}}
+@keyframes flashRed{0%{background:#E48E7F !important;}100%{}}
+
+/* ---------- Action rows ---------- */
+.actions-row{padding:0 20px;display:flex;gap:10px;margin-bottom:12px;}
+.color-pick{display:flex;gap:10px;margin-bottom:6px;}
+.color-pick .btn{flex:1;}
+.color-pick .btn.selected{background:var(--green);border-color:var(--green);color:#fff;}
+
+/* ---------- Stats ---------- */
+.stats-row{display:flex;gap:10px;padding:0 20px;margin-bottom:16px;}
+.stat-box{flex:1;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-md);padding:14px;text-align:center;}
+.stat-box .num{font-size:22px;font-weight:800;}
+.stat-box.correct .num{color:var(--green);}
+.stat-box.incorrect .num{color:var(--red);}
+.stat-box .lbl{font-size:12px;color:var(--ink-muted);margin-top:2px;}
+
+/* ---------- Moves table ---------- */
+.moves-section{margin:0 20px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow);}
+.moves-header{padding:15px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:800;letter-spacing:.03em;font-size:13px;color:var(--ink-muted);text-transform:uppercase;}
+.moves-header .chev{transition:transform .2s ease;color:var(--ink-faint);}
+.moves-header.open .chev{transform:rotate(180deg);}
+.moves-body{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+.moves-body.open{max-height:340px;overflow-y:auto;}
+.moves-body-inner{padding:0 18px 16px;font-size:15px;line-height:1.85;word-break:break-word;}
+.mv{cursor:pointer;padding:1px 3px;border-radius:5px;color:var(--ink);}
+.mv:hover{background:var(--green-soft);}
+.mv.current{background:var(--green);color:#fff;font-weight:700;}
+.mv-num{color:var(--ink-faint);margin-right:2px;}
+.variation{color:var(--ink-muted);font-size:14px;}
+.no-moves{color:var(--ink-faint);font-size:14px;padding:2px 0;}
+
+/* ---------- Modal ---------- */
+/* ---------- Library drawer ---------- */
+.drawer-overlay{position:fixed;inset:0;background:rgba(20,22,15,0);z-index:900;display:flex;align-items:stretch;justify-content:flex-start;transition:background .28s ease;}
+.drawer-overlay.open{background:rgba(20,22,15,0.45);}
+.drawer-panel{width:min(86vw,380px);max-width:380px;height:100%;background:var(--bg);box-shadow:2px 0 24px rgba(0,0,0,0.18);transform:translateX(-100%);transition:transform .28s ease;overflow-y:auto;padding-bottom:24px;}
+.drawer-overlay.open .drawer-panel{transform:translateX(0);}
+.drawer-close{margin-left:auto;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(20,22,15,0.45);display:flex;align-items:flex-end;justify-content:center;z-index:1000;}
+.modal-overlay.center{align-items:center;padding:20px;}
+.modal-sheet{background:var(--card);width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:22px 20px calc(22px + var(--safe-bottom));max-height:85vh;overflow-y:auto;}
+.modal-overlay.center .modal-sheet{border-radius:22px;max-height:80vh;}
+.modal-title{font-size:19px;font-weight:800;margin:0 0 14px;}
+.field-label{font-size:13px;font-weight:700;color:var(--ink-muted);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.03em;}
+.field-label:first-of-type{margin-top:0;}
+.text-input{width:100%;padding:13px 14px;border:1px solid var(--card-border);border-radius:12px;font-size:16px;background:var(--green-softer);color:var(--ink);}
+textarea.text-input{resize:vertical;min-height:110px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;}
+.modal-actions{display:flex;gap:10px;margin-top:18px;}
+.modal-close{position:absolute;top:14px;right:16px;}
+.modal-tabs{display:flex;background:var(--green-soft);border-radius:999px;padding:4px;margin-bottom:16px;}
+.modal-tabs button{flex:1;border:none;background:transparent;padding:9px 0;border-radius:999px;font-weight:700;font-size:14px;color:var(--green-dark);cursor:pointer;}
+.modal-tabs button.active{background:var(--green);color:#fff;}
+.promo-choices{display:flex;gap:10px;justify-content:center;padding:8px 0;}
+.promo-choices button{width:64px;height:64px;border-radius:14px;border:1px solid var(--card-border);background:var(--green-softer);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.end-banner{background:var(--green-soft);color:var(--green-dark);border-radius:14px;padding:14px 16px;font-weight:700;text-align:center;margin:0 20px 14px;}
+.toast{position:fixed;bottom:calc(24px + var(--safe-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;font-weight:600;z-index:2000;box-shadow:0 4px 16px rgba(0,0,0,.25);}
 </style>
 </head>
 <body>
-
-<div id="ghost"><svg id="ghost-svg" viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg"></svg></div>
-
-<header>
-  <div class="logo">
-    <span class="logo-icon">♟</span>
-    <span class="logo-text">Blitz<span>Meister</span></span>
-  </div>
-  <div class="hdr-btns">
-    <button class="btn btn-primary" id="btn-random">🎲 Willekeurig</button>
-    <button class="btn btn-ghost" id="btn-edit">✏️ Editor mode</button>
-    <button class="btn btn-ghost" id="btn-flip">↕</button>
-    <button class="btn btn-ghost" id="btn-reset">↺ Opnieuw</button>
-  </div>
-</header>
-<div class="edit-mode-banner" id="edit-banner">✏️ Editor mode actief — speel zetten om PGN op te bouwen</div>
-
-<main id="main">
-
-  <!-- STATUS -->
-  <div class="status-bar" id="el-status">
-    <div class="status-name" id="status-name">— geen opening geselecteerd —</div>
-    <div class="status-msg" id="status-msg">Selecteer een opening of gebruik de willekeurige knop.</div>
-    <div class="progress-row">
-      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-      <div class="move-counter" id="move-counter">0 / 0</div>
-    </div>
-    <div class="color-row">
-      <button class="color-btn w-active" id="cbtn-w" onclick="setColor('white')">♔ Wit</button>
-      <button class="color-btn" id="cbtn-b" onclick="setColor('black')">♚ Zwart</button>
-    </div>
-  </div>
-
-  <!-- EDIT MODE BAR -->
-  <div id="edit-mode-bar">
-    <div class="em-title">Editor mode</div>
-    <div class="em-moves" id="edit-moves-display">— nog geen zetten —</div>
-    <div class="em-btns">
-      <button class="btn btn-ghost btn-sm" id="edit-clear" style="font-size:.75rem;padding:.3rem .65rem;">🗑 Wis zetten</button>
-      <button class="btn btn-ghost btn-sm" id="edit-arrow-toggle" style="font-size:.75rem;padding:.3rem .65rem;">➡ Beste zet</button>
-      <button class="btn btn-primary btn-sm" id="edit-done" style="font-size:.75rem;padding:.3rem .65rem;flex:1;text-align:center;">✓ Naar PGN-veld</button>
-    </div>
-  </div>
-
-  <!-- BOARD -->
-  <div class="board-outer" id="board-outer">
-    <!-- EVAL BAR (editor mode only, absolute positioned left of board) -->
-    <div class="eval-bar-wrap" id="eval-bar-wrap">
-      <div class="eval-spinner" id="eval-spinner"></div>
-      <div class="eval-bar" id="eval-bar">
-        <div class="eval-bar-fill" id="eval-bar-fill" style="height:50%"></div>
-      </div>
-      <div class="eval-label" id="eval-label">0.00</div>
-    </div>
-    <div class="board-inner" id="chess-board"></div>
-    <svg id="arrow-overlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-          <polygon points="0 0, 6 3, 0 6" fill="rgba(100,100,100,0.9)"/>
-        </marker>
-      </defs>
-      <line id="arrow-line" x1="0" y1="0" x2="0" y2="0" stroke="rgba(100,100,100,0.9)" stroke-width="14" stroke-linecap="round" marker-end="url(#arrowhead)" visibility="hidden"/>
-    </svg>
-  </div>
-
-  <!-- ACTIONS -->
-  <div class="action-row">
-    <button class="btn btn-ghost" id="btn-hint">💡 Hint</button>
-    <button class="btn btn-ghost" id="btn-skip">⏭ Sla over</button>
-  </div>
-
-  <!-- MOVE HISTORY -->
-  <div class="card">
-    <div class="card-hdr">Zetten</div>
-    <div class="history-body" id="move-history"></div>
-    <div class="review-nav hidden" id="review-nav">
-      <button class="rev-btn" id="rev-first" title="Naar begin">⇤</button>
-      <button class="rev-btn" id="rev-prev" title="Vorige zet">←</button>
-      <span class="rev-label" id="rev-label">reviewmodus</span>
-      <button class="rev-btn" id="rev-next" title="Volgende zet">→</button>
-      <button class="rev-btn" id="rev-last" title="Naar einde">⇥</button>
-      <button class="rev-resume" id="rev-resume">Hervatten ↩</button>
-    </div>
-  </div>
-
-  <!-- STATS (only goed/fout, reset per opening) -->
-  <div class="stats-row">
-    <div class="stat-box">
-      <div class="stat-icon">✅</div>
-      <div class="stat-right">
-        <div class="stat-num" id="s-c" style="color:var(--green)">0</div>
-        <div class="stat-lbl">Goed</div>
-      </div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-icon">❌</div>
-      <div class="stat-right">
-        <div class="stat-num" id="s-w" style="color:var(--red)">0</div>
-        <div class="stat-lbl">Fout</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- OPENINGS LIST -->
-  <div class="panel open" id="panel-op">
-    <div class="panel-hdr" onclick="togglePanel('panel-op')">
-      <div class="panel-hdr-left">
-        Mijn openingen
-        <span id="op-count" style="color:var(--accent);font-size:.8rem;text-transform:none;letter-spacing:0;font-weight:600">0</span>
-      </div>
-      <div class="panel-hdr-right">
-        <button class="btn-sm" onclick="event.stopPropagation();exportOp()">⬇ Export</button>
-        <label class="btn-sm" onclick="event.stopPropagation()" style="cursor:pointer">⬆ Import<input type="file" id="imp-file" accept=".json" style="display:none" onchange="importOp(this)"></label>
-        <span class="panel-toggle">▾</span>
-      </div>
-    </div>
-    <div class="panel-body">
-      <div style="padding:.45rem .9rem;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;gap:.4rem;align-items:center;flex-wrap:wrap">
-        <span style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;white-space:nowrap">Categorie:</span>
-        <div id="cat-filter" style="display:flex;gap:.3rem;flex-wrap:wrap"></div>
-      </div>
-      <div class="openings-list" id="op-list"></div>
-    </div>
-  </div>
-
-  <!-- PGN IMPORT -->
-  <div class="panel open" id="panel-pgn">
-    <div class="panel-hdr" onclick="togglePanel('panel-pgn')">
-      <div class="panel-hdr-left">PGN invoeren</div>
-      <div class="panel-hdr-right"><span class="panel-toggle">▾</span></div>
-    </div>
-    <div class="panel-body">
-      <div class="pgn-body">
-        <textarea id="pgn-input" placeholder="Plak hier een PGN, bijv:&#10;1. e4 e5 2. Nf3 Nc6 3. Bb5 *"></textarea>
-        <div class="pgn-row">
-          <input class="pgn-name" id="pgn-category" type="text" placeholder="Schaakopening..." list="category-suggestions">
-          <datalist id="category-suggestions"></datalist>
-        </div>
-        <div class="pgn-row">
-          <input class="pgn-name" id="pgn-name" type="text" placeholder="Variatie...">
-        </div>
-        <div class="pgn-row">
-          <input class="pgn-name" id="pgn-optional" type="text" placeholder="Optioneel...">
-        </div>
-        <div class="pgn-row">
-          <textarea class="pgn-name" id="pgn-notes" placeholder="Opmerkingen... (verschijnt na voltooiing)" style="height:60px;resize:none;line-height:1.5;padding:.38rem .6rem;font-family:'Inter',sans-serif;font-size:.8rem;"></textarea>
-        </div>
-        <div class="pgn-row" style="gap:.4rem">
-          <span style="font-size:.75rem;color:var(--muted);white-space:nowrap;align-self:center">Vanaf zet</span>
-          <input class="pgn-name" id="pgn-from" type="number" min="1" placeholder="1" style="width:60px;flex:none;text-align:center" title="Vanaf welke halfzet de oefening begint (1 = begin)">
-          <span style="font-size:.75rem;color:var(--muted);white-space:nowrap;align-self:center">t/m zet</span>
-          <input class="pgn-name" id="pgn-to" type="number" min="1" placeholder="einde" style="width:60px;flex:none;text-align:center" title="Tot welke halfzet de oefening duurt (leeg = tot einde)">
-          <span style="font-size:.68rem;color:var(--muted);align-self:center;flex:1">(halfzetten)</span>
-        </div>
-        <div class="pgn-row2">
-          <div class="color-picker" id="pgn-color-picker">
-            <button class="cp-opt active" id="cp-white" onclick="setPgnColor('white')">♔ Wit</button>
-            <button class="cp-opt" id="cp-black" onclick="setPgnColor('black')">♚ Zwart</button>
-          </div>
-          <button class="btn btn-primary" id="btn-add" style="flex:1">Toevoegen</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</main>
-
-<!-- Completion modal -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <div class="modal-emoji">🏆</div>
-    <h2 id="modal-title">Opening voltooid!</h2>
-    <p id="modal-body">Goed gedaan!</p>
-    <p id="modal-notes" style="display:none;margin-top:-.4rem;margin-bottom:.9rem;font-size:.8rem;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.55rem .75rem;text-align:left;line-height:1.6;white-space:pre-wrap;"></p>
-    <div class="modal-btns">
-      <button class="btn btn-primary" onclick="pickRandom();closeModal()">🎲 Volgende opening</button>
-      <button class="btn btn-ghost" onclick="resetBoard();closeModal()">↺ Nog een keer</button>
-      <button class="btn btn-ghost" onclick="closeModal()">✕ Sluiten</button>
-    </div>
-  </div>
-</div>
+<div id="app"></div>
 
 <script>
-// ══════════════════════════════════════════════════
-//  CHESS PIECES — clean geometric SVG, renders on all platforms
-// ══════════════════════════════════════════════════
-function makePiece(type, color) {
-  const w = color === 'w';
-  const fill = w ? '#ffffff' : '#1a1a1a';
-  const stroke = w ? '#333333' : '#555555';
-  const sw = 1.2;
+/* ===================== CHESS ENGINE (chess.js 0.10.3, MIT License, Jeff Hlywa) ===================== */
+/*
+ * Copyright (c) 2020, Jeff Hlywa (jhlywa@gmail.com)
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *----------------------------------------------------------------------------*/
 
-  const pieces = {
-    K: () => `
-      <rect x="17" y="2" width="11" height="3" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="21" y="1" width="3" height="5" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <path d="M14 19 C10 19 8 24 8 30 L8 38 L37 38 L37 30 C37 24 35 19 31 19 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>
-      <path d="M22.5 8 C18 8 14 12 14 19 L31 19 C31 12 27 8 22.5 8 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <line x1="8" y1="30" x2="37" y2="30" stroke="${stroke}" stroke-width="${sw}"/>
-      <line x1="8" y1="34" x2="37" y2="34" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="7" y="37" width="31" height="4" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`,
+/* minified license below  */
 
-    Q: () => `
-      <rect x="7" y="37" width="31" height="4" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <path d="M9 32 L36 32 L33 20 L27 28 L22.5 10 L18 28 L12 20 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>
-      <circle cx="6.5" cy="13" r="3" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <circle cx="14" cy="9" r="3" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <circle cx="22.5" cy="8" r="3" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <circle cx="31" cy="9" r="3" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <circle cx="38.5" cy="13" r="3" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <path d="M9 32 L36 32 L36 37 L9 37 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`,
+/* @license
+ * Copyright (c) 2018, Jeff Hlywa (jhlywa@gmail.com)
+ * Released under the BSD license
+ * https://github.com/jhlywa/chess.js/blob/master/LICENSE
+ */
 
-    R: () => `
-      <rect x="7" y="37" width="31" height="4" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="9" y="30" width="27" height="8" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="12" y="17" width="21" height="14" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="8" y="9" width="29" height="9" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="8" y="5" width="7" height="6" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="19.5" y="5" width="6" height="6" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="30" y="5" width="7" height="6" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`,
+var Chess = function(fen) {
+  var BLACK = 'b'
+  var WHITE = 'w'
 
-    B: () => `
-      <rect x="7" y="37" width="31" height="4" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <path d="M9 33 C9 29 13 28 22.5 28 C32 28 36 29 36 33 L36 38 L9 38 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <path d="M22.5 10 C17 10 13 15 13 21 C13 26 17 29 22.5 29 C28 29 32 26 32 21 C32 15 28 10 22.5 10 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <circle cx="22.5" cy="7" r="3.5" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <line x1="16" y1="22" x2="29" y2="22" stroke="${stroke}" stroke-width="1.4"/>
-      <line x1="22.5" y1="14" x2="22.5" y2="27" stroke="${stroke}" stroke-width="1.4"/>`,
+  var EMPTY = -1
 
-    N: () => `
-      <rect x="7" y="37" width="31" height="4" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="9" y="33" width="20" height="5" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <path d="M11 33 C11 33 9 22 13 18 C15 16 14 10 19 8 C22 7 25 9 24 13 C28 11 32 12 32 16 C32 20 27 19 26 22 C25 25 26 30 26 33 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>
-      <circle cx="18" cy="15" r="1.8" fill="${stroke}"/>`,
+  var PAWN = 'p'
+  var KNIGHT = 'n'
+  var BISHOP = 'b'
+  var ROOK = 'r'
+  var QUEEN = 'q'
+  var KING = 'k'
 
-    P: () => `
-      <rect x="7" y="37" width="31" height="4" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <rect x="12" y="31" width="21" height="7" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <path d="M16 21 C14 22 13 25 13 28 C13 31 14 32 16 32 L29 32 C31 32 32 31 32 28 C32 25 31 22 29 21 Z" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <circle cx="22.5" cy="14.5" r="6.5" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`
+  var SYMBOLS = 'pnbrqkPNBRQK'
+
+  var DEFAULT_POSITION =
+    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+  var POSSIBLE_RESULTS = ['1-0', '0-1', '1/2-1/2', '*']
+
+  var PAWN_OFFSETS = {
+    b: [16, 32, 17, 15],
+    w: [-16, -32, -17, -15]
+  }
+
+  var PIECE_OFFSETS = {
+    n: [-18, -33, -31, -14, 18, 33, 31, 14],
+    b: [-17, -15, 17, 15],
+    r: [-16, 1, 16, -1],
+    q: [-17, -16, -15, 1, 17, 16, 15, -1],
+    k: [-17, -16, -15, 1, 17, 16, 15, -1]
+  }
+
+  // prettier-ignore
+  var ATTACKS = [
+    20, 0, 0, 0, 0, 0, 0, 24,  0, 0, 0, 0, 0, 0,20, 0,
+     0,20, 0, 0, 0, 0, 0, 24,  0, 0, 0, 0, 0,20, 0, 0,
+     0, 0,20, 0, 0, 0, 0, 24,  0, 0, 0, 0,20, 0, 0, 0,
+     0, 0, 0,20, 0, 0, 0, 24,  0, 0, 0,20, 0, 0, 0, 0,
+     0, 0, 0, 0,20, 0, 0, 24,  0, 0,20, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0,20, 2, 24,  2,20, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 2,53, 56, 53, 2, 0, 0, 0, 0, 0, 0,
+    24,24,24,24,24,24,56,  0, 56,24,24,24,24,24,24, 0,
+     0, 0, 0, 0, 0, 2,53, 56, 53, 2, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0,20, 2, 24,  2,20, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0,20, 0, 0, 24,  0, 0,20, 0, 0, 0, 0, 0,
+     0, 0, 0,20, 0, 0, 0, 24,  0, 0, 0,20, 0, 0, 0, 0,
+     0, 0,20, 0, 0, 0, 0, 24,  0, 0, 0, 0,20, 0, 0, 0,
+     0,20, 0, 0, 0, 0, 0, 24,  0, 0, 0, 0, 0,20, 0, 0,
+    20, 0, 0, 0, 0, 0, 0, 24,  0, 0, 0, 0, 0, 0,20
+  ];
+
+  // prettier-ignore
+  var RAYS = [
+     17,  0,  0,  0,  0,  0,  0, 16,  0,  0,  0,  0,  0,  0, 15, 0,
+      0, 17,  0,  0,  0,  0,  0, 16,  0,  0,  0,  0,  0, 15,  0, 0,
+      0,  0, 17,  0,  0,  0,  0, 16,  0,  0,  0,  0, 15,  0,  0, 0,
+      0,  0,  0, 17,  0,  0,  0, 16,  0,  0,  0, 15,  0,  0,  0, 0,
+      0,  0,  0,  0, 17,  0,  0, 16,  0,  0, 15,  0,  0,  0,  0, 0,
+      0,  0,  0,  0,  0, 17,  0, 16,  0, 15,  0,  0,  0,  0,  0, 0,
+      0,  0,  0,  0,  0,  0, 17, 16, 15,  0,  0,  0,  0,  0,  0, 0,
+      1,  1,  1,  1,  1,  1,  1,  0, -1, -1,  -1,-1, -1, -1, -1, 0,
+      0,  0,  0,  0,  0,  0,-15,-16,-17,  0,  0,  0,  0,  0,  0, 0,
+      0,  0,  0,  0,  0,-15,  0,-16,  0,-17,  0,  0,  0,  0,  0, 0,
+      0,  0,  0,  0,-15,  0,  0,-16,  0,  0,-17,  0,  0,  0,  0, 0,
+      0,  0,  0,-15,  0,  0,  0,-16,  0,  0,  0,-17,  0,  0,  0, 0,
+      0,  0,-15,  0,  0,  0,  0,-16,  0,  0,  0,  0,-17,  0,  0, 0,
+      0,-15,  0,  0,  0,  0,  0,-16,  0,  0,  0,  0,  0,-17,  0, 0,
+    -15,  0,  0,  0,  0,  0,  0,-16,  0,  0,  0,  0,  0,  0,-17
+  ];
+
+  var SHIFTS = { p: 0, n: 1, b: 2, r: 3, q: 4, k: 5 }
+
+  var FLAGS = {
+    NORMAL: 'n',
+    CAPTURE: 'c',
+    BIG_PAWN: 'b',
+    EP_CAPTURE: 'e',
+    PROMOTION: 'p',
+    KSIDE_CASTLE: 'k',
+    QSIDE_CASTLE: 'q'
+  }
+
+  var BITS = {
+    NORMAL: 1,
+    CAPTURE: 2,
+    BIG_PAWN: 4,
+    EP_CAPTURE: 8,
+    PROMOTION: 16,
+    KSIDE_CASTLE: 32,
+    QSIDE_CASTLE: 64
+  }
+
+  var RANK_1 = 7
+  var RANK_2 = 6
+  var RANK_3 = 5
+  var RANK_4 = 4
+  var RANK_5 = 3
+  var RANK_6 = 2
+  var RANK_7 = 1
+  var RANK_8 = 0
+
+  // prettier-ignore
+  var SQUARES = {
+    a8:   0, b8:   1, c8:   2, d8:   3, e8:   4, f8:   5, g8:   6, h8:   7,
+    a7:  16, b7:  17, c7:  18, d7:  19, e7:  20, f7:  21, g7:  22, h7:  23,
+    a6:  32, b6:  33, c6:  34, d6:  35, e6:  36, f6:  37, g6:  38, h6:  39,
+    a5:  48, b5:  49, c5:  50, d5:  51, e5:  52, f5:  53, g5:  54, h5:  55,
+    a4:  64, b4:  65, c4:  66, d4:  67, e4:  68, f4:  69, g4:  70, h4:  71,
+    a3:  80, b3:  81, c3:  82, d3:  83, e3:  84, f3:  85, g3:  86, h3:  87,
+    a2:  96, b2:  97, c2:  98, d2:  99, e2: 100, f2: 101, g2: 102, h2: 103,
+    a1: 112, b1: 113, c1: 114, d1: 115, e1: 116, f1: 117, g1: 118, h1: 119
   };
 
-  const inner = (pieces[type] || pieces['P'])();
-  return `<svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
-}
-
-// ══════════════════════════════════════════════════
-//  CHESS ENGINE
-// ══════════════════════════════════════════════════
-const FILES=['a','b','c','d','e','f','g','h'];
-const s2i=(f,r)=>r*8+f;
-const i2s=i=>({file:i%8,rank:Math.floor(i/8)});
-const alg2i=a=>s2i(FILES.indexOf(a[0]),8-parseInt(a[1]));
-const i2alg=i=>{const{file:f,rank:r}=i2s(i);return FILES[f]+(8-r);};
-
-class Engine{
-  constructor(){this.reset();}
-  reset(){
-    this.b=this._fen2b('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
-    this.turn='w';this.castle={wK:1,wQ:1,bK:1,bQ:1};
-    this.ep=null;this.last=null;
+  var ROOKS = {
+    w: [
+      { square: SQUARES.a1, flag: BITS.QSIDE_CASTLE },
+      { square: SQUARES.h1, flag: BITS.KSIDE_CASTLE }
+    ],
+    b: [
+      { square: SQUARES.a8, flag: BITS.QSIDE_CASTLE },
+      { square: SQUARES.h8, flag: BITS.KSIDE_CASTLE }
+    ]
   }
-  _fen2b(fen){
-    const b=Array(64).fill(null);
-    fen.split('/').forEach((row,r)=>{let f=0;for(const c of row){if(isNaN(c)){b[s2i(f,r)]=c;f++;}else f+=+c;}});
-    return b;
-  }
-  col(p){if(!p)return null;return p===p.toUpperCase()?'w':'b';}
-  pseudo(idx){
-    const p=this.b[idx];if(!p)return[];
-    const c=this.col(p),t=p.toLowerCase(),mv=[];
-    const add=to=>{if(to<0||to>63)return;if(this.col(this.b[to])===c)return;mv.push(to);};
-    const slide=(df,dr)=>{const{file,rank}=i2s(idx);let f=file+df,r=rank+dr;while(f>=0&&f<8&&r>=0&&r<8){const ti=s2i(f,r);if(this.b[ti]){if(this.col(this.b[ti])!==c)mv.push(ti);break;}mv.push(ti);f+=df;r+=dr;}};
-    const{file,rank}=i2s(idx);
-    if(t==='p'){
-      const dir=c==='w'?-1:1,sr=c==='w'?6:1;
-      const fw=s2i(file,rank+dir);
-      if(fw>=0&&fw<64&&!this.b[fw]){mv.push(fw);if(rank===sr){const f2=s2i(file,rank+2*dir);if(!this.b[f2])mv.push(f2);}}
-      for(const df of[-1,1]){const nf=file+df;if(nf<0||nf>7)continue;const cap=s2i(nf,rank+dir);if(this.b[cap]&&this.col(this.b[cap])!==c)mv.push(cap);if(cap===this.ep)mv.push(cap);}
-    }else if(t==='n'){for(const[df,dr]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nf=file+df,nr=rank+dr;if(nf>=0&&nf<8&&nr>=0&&nr<8)add(s2i(nf,nr));}}
-    else if(t==='b'){for(const[df,dr]of[[-1,-1],[-1,1],[1,-1],[1,1]])slide(df,dr);}
-    else if(t==='r'){for(const[df,dr]of[[-1,0],[1,0],[0,-1],[0,1]])slide(df,dr);}
-    else if(t==='q'){for(const[df,dr]of[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]])slide(df,dr);}
-    else if(t==='k'){
-      for(const[df,dr]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]){const nf=file+df,nr=rank+dr;if(nf>=0&&nf<8&&nr>=0&&nr<8)add(s2i(nf,nr));}
-      if(c==='w'&&rank===7){if(this.castle.wK&&!this.b[s2i(5,7)]&&!this.b[s2i(6,7)])mv.push(s2i(6,7));if(this.castle.wQ&&!this.b[s2i(3,7)]&&!this.b[s2i(2,7)]&&!this.b[s2i(1,7)])mv.push(s2i(2,7));}
-      if(c==='b'&&rank===0){if(this.castle.bK&&!this.b[s2i(5,0)]&&!this.b[s2i(6,0)])mv.push(s2i(6,0));if(this.castle.bQ&&!this.b[s2i(3,0)]&&!this.b[s2i(2,0)]&&!this.b[s2i(1,0)])mv.push(s2i(2,0));}
-    }
-    return mv;
-  }
-  inChk(c){
-    const kp=c==='w'?'K':'k',ki=this.b.indexOf(kp),en=c==='w'?'b':'w';
-    for(let i=0;i<64;i++)if(this.b[i]&&this.col(this.b[i])===en&&this.pseudo(i).includes(ki))return true;
-    return false;
-  }
-  legal(from){
-    const ps=this.pseudo(from),c=this.col(this.b[from]),leg=[];
-    for(const to of ps){
-      const sv=[...this.b],se=this.ep,sc={...this.castle},st=this.turn;
-      const p=this.b[from],t=p.toLowerCase();
-      this.b[to]=p;this.b[from]=null;
-      const{file:ff,rank:fr}=i2s(from),{file:tf,rank:tr}=i2s(to);
-      if(t==='p'&&to===this.ep)this.b[s2i(tf,tr+(c==='w'?1:-1))]=null;
-      if(t==='k'){if(tf-ff===2){const rf=c==='w'?s2i(7,7):s2i(7,0),rt=c==='w'?s2i(5,7):s2i(5,0);this.b[rt]=this.b[rf];this.b[rf]=null;}if(ff-tf===2){const rf=c==='w'?s2i(0,7):s2i(0,0),rt=c==='w'?s2i(3,7):s2i(3,0);this.b[rt]=this.b[rf];this.b[rf]=null;}}
-      const ok=!this.inChk(c);
-      this.b=sv;this.ep=se;this.castle=sc;this.turn=st;
-      if(ok)leg.push(to);
-    }
-    return leg;
-  }
-  san(from,to,pr='q'){
-    const p=this.b[from],t=p.toLowerCase(),c=this.turn;
-    const{file:ff,rank:fr}=i2s(from),{file:tf,rank:tr}=i2s(to);
-    const cap=this.b[to]||(t==='p'&&to===this.ep);
-    if(t==='k'){if(tf-ff===2)return'O-O';if(ff-tf===2)return'O-O-O';}
-    let s='';
-    if(t!=='p'){s+=p.toUpperCase();const am=[];for(let i=0;i<64;i++){if(i!==from&&this.b[i]===p&&this.legal(i).includes(to))am.push(i);}if(am.length){const sf=am.filter(i=>i2s(i).file===ff),sr2=am.filter(i=>i2s(i).rank===fr);if(!sf.length&&!sr2.length)s+=FILES[ff];else if(sr2.length)s+=FILES[ff];else s+=(8-fr);}}
-    if(cap){if(t==='p')s+=FILES[ff];s+='x';}
-    s+=i2alg(to);
-    if(t==='p'&&(tr===0||tr===7))s+='='+pr.toUpperCase();
-    return s;
-  }
-  move(from,to,pr='q'){
-    if(!this.b[from]||this.col(this.b[from])!==this.turn)return null;
-    if(!this.legal(from).includes(to))return null;
-    const san=this.san(from,to,pr);
-    const{file:ff,rank:fr}=i2s(from),{file:tf,rank:tr}=i2s(to);
-    const t=this.b[from].toLowerCase(),c=this.turn;
-    if(t==='p'&&to===this.ep){const d=c==='w'?1:-1;this.b[s2i(tf,tr+d)]=null;}
-    this.b[to]=this.b[from];this.b[from]=null;
-    if(t==='p'&&(tr===0||tr===7))this.b[to]=c==='w'?pr.toUpperCase():pr.toLowerCase();
-    if(t==='k'){
-      if(tf-ff===2){const rf=c==='w'?s2i(7,7):s2i(7,0),rt=c==='w'?s2i(5,7):s2i(5,0);this.b[rt]=this.b[rf];this.b[rf]=null;}
-      if(ff-tf===2){const rf=c==='w'?s2i(0,7):s2i(0,0),rt=c==='w'?s2i(3,7):s2i(3,0);this.b[rt]=this.b[rf];this.b[rf]=null;}
-      if(c==='w'){this.castle.wK=0;this.castle.wQ=0;}else{this.castle.bK=0;this.castle.bQ=0;}
-    }
-    if(t==='r'){if(ff===7&&fr===7)this.castle.wK=0;if(ff===0&&fr===7)this.castle.wQ=0;if(ff===7&&fr===0)this.castle.bK=0;if(ff===0&&fr===0)this.castle.bQ=0;}
-    this.ep=null;
-    if(t==='p'&&Math.abs(fr-tr)===2)this.ep=s2i(ff,(fr+tr)/2);
-    this.last={from,to};
-    this.turn=c==='w'?'b':'w';
-    return san;
-  }
-  parseSAN(san){
-    const c=this.turn;
-    if(san==='O-O'||san==='0-0'){const r=c==='w'?7:0;return[s2i(4,r),s2i(6,r)];}
-    if(san==='O-O-O'||san==='0-0-0'){const r=c==='w'?7:0;return[s2i(4,r),s2i(2,r)];}
-    san=san.replace(/[+#!?]/g,'');
-    let pr=null;const pm=san.match(/=([QRBN])$/);
-    if(pm){pr=pm[1].toLowerCase();san=san.replace(/=[QRBN]$/,'');}
-    const toA=san.slice(-2),toI=alg2i(toA),rest=san.slice(0,-2);
-    let pc='p',dF=null,dR=null;
-    if(rest.length&&rest[0]>='A'&&rest[0]<='Z'){pc=rest[0].toLowerCase();const rem=rest.slice(1).replace('x','');if(rem.length===2){dF=FILES.indexOf(rem[0]);dR=8-parseInt(rem[1]);}else if(rem.length===1){if(rem>='a'&&rem<='h')dF=FILES.indexOf(rem);else dR=8-parseInt(rem);}}
-    else{const rem=rest.replace('x','');if(rem.length===1)dF=FILES.indexOf(rem);}
-    const piece=c==='w'?pc.toUpperCase():pc;
-    for(let i=0;i<64;i++){
-      if(this.b[i]!==piece)continue;
-      const{file,rank}=i2s(i);
-      if(dF!==null&&file!==dF)continue;
-      if(dR!==null&&rank!==dR)continue;
-      if(this.legal(i).includes(toI))return[i,toI,pr];
-    }
-    return null;
-  }
-}
 
-// ══════════════════════════════════════════════════
-//  PGN PARSER
-// ══════════════════════════════════════════════════
-function parsePGN(pgn){
-  let cl=pgn.replace(/\{[^}]*\}/g,'').replace(/\([^)]*\)/g,'');
-  const mt=cl.replace(/\[.*?\]/gs,'').trim();
-  const tokens=mt.split(/\s+/).filter(t=>t&&!/^\d+\./.test(t)&&!/^(1-0|0-1|1\/2|½|\*)/.test(t));
-  let name='';
-  const om=pgn.match(/\[Opening\s+"([^"]+)"\]/),em=pgn.match(/\[Event\s+"([^"]+)"\]/);
-  if(om)name=om[1];else if(em&&em[1]!=='?')name=em[1];else name=tokens.slice(0,4).join(' ');
-  return{name,moves:tokens};
-}
+  var board = new Array(128)
+  var kings = { w: EMPTY, b: EMPTY }
+  var turn = WHITE
+  var castling = { w: 0, b: 0 }
+  var ep_square = EMPTY
+  var half_moves = 0
+  var move_number = 1
+  var history = []
+  var header = {}
 
-// ══════════════════════════════════════════════════
-//  APP STATE
-// ══════════════════════════════════════════════════
-let openings=JSON.parse(localStorage.getItem('bm_openings')||'[]');
-// Stats reset per opening — stored in session only
-let sessionStats={c:0,w:0};
-let activeOp=null,engine=new Engine(),moveIdx=0,parsed=[],flipped=false,playerColor='white';
-let pgnColor='white'; // color selected in PGN form
-let activeCategory=null; // null = alle categorieën
-let pendingTimer=null; // tracks setTimeout for oppMove/showModal
-let reviewIdx=null; // null = live mode; number = reviewing that position
-let editMode=false,editEngine=null,editMoves=[];
-let lastEvalData=null,showArrow=false,lastBestMove=null;
-
-function saveOp(){localStorage.setItem('bm_openings',JSON.stringify(openings));}
-function resetSessionStats(){sessionStats={c:0,w:0};updStats();}
-
-// ══════════════════════════════════════════════════
-//  BOARD RENDERING
-// ══════════════════════════════════════════════════
-const boardEl=document.getElementById('chess-board');
-
-function renderBoard(){
-  // Detecteer schaakmat
-  let isMate=false,mateKingIdx=-1;
-  const cur=engine.turn;
-  const kp=cur==='w'?'K':'k';
-  const hasLegal=engine.b.some((_,i)=>engine.b[i]&&engine.col(engine.b[i])===cur&&engine.legal(i).length>0);
-  if(!hasLegal&&engine.inChk(cur)){
-    isMate=true;
-    mateKingIdx=engine.b.indexOf(kp);
-  }
-  boardEl.innerHTML='';
-  for(let row=0;row<8;row++){
-    for(let col=0;col<8;col++){
-      const dr=flipped?7-row:row,dc=flipped?7-col:col;
-      const idx=s2i(dc,dr),light=(dr+dc)%2===0;
-      const sq=document.createElement('div');
-      sq.className='sq '+(light?'light':'dark');
-      sq.dataset.idx=idx;
-      if(engine.last){
-        if(idx===engine.last.from)sq.classList.add('hl-from');
-        if(idx===engine.last.to)sq.classList.add('hl-to');
-      }
-      // Schaakmat: kleur koningsveld rood
-      if(isMate&&idx===mateKingIdx)sq.classList.add('hl-mate');
-      if(flipped?row===0:row===7){const l=document.createElement('span');l.className='lbl-f';l.textContent=FILES[dc];sq.appendChild(l);}
-      if(flipped?col===7:col===0){const l=document.createElement('span');l.className='lbl-r';l.textContent=8-dr;sq.appendChild(l);}
-      const p=engine.b[idx];
-      if(p){
-        const c=p===p.toUpperCase()?'w':'b';
-        const el=document.createElement('div');
-        el.className='piece';
-        el.innerHTML=makePiece(p.toUpperCase(),c);
-        sq.appendChild(el);
-      }
-      boardEl.appendChild(sq);
-    }
-  }
-}
-
-function getSq(idx){return boardEl.querySelector(`.sq[data-idx="${idx}"]`);}
-
-function clearHL(){
-  boardEl.querySelectorAll('.hl-sel,.drop-ok').forEach(e=>e.classList.remove('hl-sel','drop-ok'));
-  boardEl.querySelectorAll('.dot,.ring').forEach(e=>e.remove());
-}
-
-function showDots(from,targets){
-  const activeEngineNow=editMode?editEngine:engine;
-  const se=getSq(from);if(se)se.classList.add('hl-sel');
-  targets.forEach(to=>{
-    const te=getSq(to);if(!te)return;
-    const el=document.createElement('div');
-    el.className=activeEngineNow.b[to]?'ring':'dot';
-    te.appendChild(el);
-  });
-}
-
-// ══════════════════════════════════════════════════
-//  DRAG — mouse + touch (iOS compatible)
-// ══════════════════════════════════════════════════
-let dragFrom=null,dragLegal=[],dragging=false;
-const ghostEl=document.getElementById('ghost');
-const ghostSvg=document.getElementById('ghost-svg');
-
-function startDrag(idx,cx,cy){
-  const activeEngineNow=editMode?editEngine:engine;
-  const p=activeEngineNow.b[idx];if(!p)return false;
-  if(!editMode){
-    const pc=engine.col(p)==='w'?'white':'black';
-    if(activeOp&&pc!==playerColor)return false;
-    if(engine.col(p)!==engine.turn)return false;
+  /* if the user passes in a fen string, load it, else default to
+   * starting position
+   */
+  if (typeof fen === 'undefined') {
+    load(DEFAULT_POSITION)
   } else {
-    if(activeEngineNow.col(p)!==activeEngineNow.turn)return false;
+    load(fen)
   }
-  clearHL();
-  dragFrom=idx;
-  dragLegal=activeEngineNow.legal(idx);
-  dragging=true;
-  showDots(idx,dragLegal);
-  // show ghost piece
-  const ghostPiece=editMode?editEngine.b[idx]:engine.b[idx];
-  const gc=ghostPiece===ghostPiece.toUpperCase()?'w':'b';
-  ghostSvg.innerHTML=makePiece(ghostPiece.toUpperCase(),gc).replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
-  const sqPx=boardEl.getBoundingClientRect().width/8;
-  const gs=Math.round(sqPx*1.2);
-  ghostEl.style.width=gs+'px';ghostEl.style.height=gs+'px';
-  ghostEl.style.left=cx+'px';ghostEl.style.top=cy+'px';ghostEl.style.display='block';
-  const src=getSq(idx);if(src){const pe=src.querySelector('.piece');if(pe)pe.classList.add('dragging');}
-  return true;
-}
 
-function moveDrag(cx,cy){
-  ghostEl.style.left=cx+'px';ghostEl.style.top=cy+'px';
-  boardEl.querySelectorAll('.drop-ok').forEach(e=>e.classList.remove('drop-ok'));
-  const el=document.elementFromPoint(cx,cy);
-  const sq=el&&el.closest('.sq');
-  if(sq){const i=parseInt(sq.dataset.idx);if(dragLegal.includes(i))sq.classList.add('drop-ok');}
-}
-
-function endDrag(cx,cy){
-  ghostEl.style.display='none';
-  if(dragFrom!==null){const s=getSq(dragFrom);if(s){const pe=s.querySelector('.piece');if(pe)pe.classList.remove('dragging');}}
-  const el=document.elementFromPoint(cx,cy);
-  const sq=el&&el.closest('.sq');
-  if(sq&&dragFrom!==null){
-    const toIdx=parseInt(sq.dataset.idx);
-    if(dragLegal.includes(toIdx)&&toIdx!==dragFrom)finishMove(dragFrom,toIdx);
-  }
-  clearHL();dragFrom=null;dragLegal=[];dragging=false;
-}
-
-function cancelDrag(){
-  ghostEl.style.display='none';
-  if(dragFrom!==null){const s=getSq(dragFrom);if(s){const pe=s.querySelector('.piece');if(pe)pe.classList.remove('dragging');}}
-  clearHL();dragFrom=null;dragLegal=[];dragging=false;
-}
-
-boardEl.addEventListener('mousedown',e=>{
-  if(e.button!==0)return;
-  const sq=e.target.closest('.sq');if(!sq)return;
-  const idx=parseInt(sq.dataset.idx);
-  if(dragFrom!==null&&dragLegal.includes(idx)&&idx!==dragFrom){finishMove(dragFrom,idx);clearHL();dragFrom=null;dragLegal=[];dragging=false;return;}
-  startDrag(idx,e.clientX,e.clientY);
-  e.preventDefault();
-});
-document.addEventListener('mousemove',e=>{if(dragging)moveDrag(e.clientX,e.clientY);});
-document.addEventListener('mouseup',e=>{if(dragging)endDrag(e.clientX,e.clientY);});
-
-boardEl.addEventListener('touchstart',e=>{
-  if(e.touches.length!==1)return;
-  const t=e.touches[0];
-  const el=document.elementFromPoint(t.clientX,t.clientY);
-  const sq=el&&el.closest('.sq');if(!sq)return;
-  const idx=parseInt(sq.dataset.idx);
-  if(dragFrom!==null&&dragLegal.includes(idx)&&idx!==dragFrom){finishMove(dragFrom,idx);clearHL();dragFrom=null;dragLegal=[];dragging=false;e.preventDefault();return;}
-  if(startDrag(idx,t.clientX,t.clientY))e.preventDefault();
-},{passive:false});
-document.addEventListener('touchmove',e=>{if(!dragging)return;e.preventDefault();const t=e.touches[0];moveDrag(t.clientX,t.clientY);},{passive:false});
-document.addEventListener('touchend',e=>{if(!dragging)return;e.preventDefault();const t=e.changedTouches[0];endDrag(t.clientX,t.clientY);},{passive:false});
-document.addEventListener('touchcancel',()=>{if(dragging)cancelDrag();});
-
-// ══════════════════════════════════════════════════
-//  MOVE LOGIC
-// ══════════════════════════════════════════════════
-function normS(s){return s.replace(/[+#!?]/g,'').replace(/0-0-0/g,'O-O-O').replace(/0-0/g,'O-O');}
-
-function finishMove(from,to){
-  if(editMode){editMovePiece(from,to);return;}
-  if(reviewIdx!==null)exitReview();
-  if(!activeOp){engine.move(from,to);renderBoard();return;}
-  const tc=engine.turn==='w'?'white':'black';
-  if(tc!==playerColor)return;
-  const exp=parsed[moveIdx];if(!exp)return;
-  const san=engine.move(from,to);if(!san)return;
-  if(normS(san)===normS(exp.san)||(from===exp.from&&to===exp.to)){
-    sessionStats.c++;updStats();moveIdx++;
-    setMsg('✓ Correct! '+san,'correct');
-    renderBoard();updHistory();updProgress();
-    if(moveIdx>=parsed.length){safeTimeout(showModal,400);return;}
-    if((engine.turn==='w'?'white':'black')!==playerColor)safeTimeout(oppMove,600);
-  }else{
-    sessionStats.w++;updStats();
-    setMsg('✗ Fout! Verwacht: '+exp.san,'wrong');
-    resetToPrefix();
-    parsed.slice(0,moveIdx).forEach(m=>engine.move(m.from,m.to,m.promo||'q'));
-    renderBoard();
-  }
-}
-
-function oppMove(){
-  if(!activeOp||moveIdx>=parsed.length)return;
-  const m=parsed[moveIdx];
-  const san=engine.move(m.from,m.to);
-  if(san){moveIdx++;renderBoard();updHistory();updProgress();setMsg('Computer: '+san,'');
-    if(moveIdx>=parsed.length)safeTimeout(showModal,400);
-  }
-}
-
-// ══════════════════════════════════════════════════
-//  UI
-// ══════════════════════════════════════════════════
-function setMsg(m,cls){const e=document.getElementById('status-msg');e.textContent=m;e.className='status-msg '+cls;}
-function updProgress(){
-  const pct=parsed.length?Math.round(moveIdx/parsed.length*100):0;
-  document.getElementById('progress-fill').style.width=pct+'%';
-  document.getElementById('move-counter').textContent=moveIdx+' / '+parsed.length;
-}
-function getBoardAtMove(targetIdx){
-  const tmp=new Engine();
-  if(activeOp&&activeOp.prefixMoves&&activeOp.prefixMoves.length){
-    const pre=new Engine();
-    for(const san of activeOp.prefixMoves){const r=pre.parseSAN(san);if(!r)break;pre.move(r[0],r[1],r[2]||'q');}
-    tmp.b=[...pre.b];tmp.turn=pre.turn;tmp.castle={...pre.castle};tmp.ep=pre.ep;tmp.last=null;
-  }
-  for(let i=0;i<targetIdx&&i<parsed.length;i++){const m=parsed[i];tmp.move(m.from,m.to,m.promo||'q');}
-  return tmp;
-}
-function enterReview(idx){
-  reviewIdx=idx;
-  const tmp=getBoardAtMove(idx);
-  engine.b=[...tmp.b];engine.turn=tmp.turn;engine.castle={...tmp.castle};engine.ep=tmp.ep;engine.last=tmp.last;
-  renderBoard();updHistory();updReviewNav();
-}
-function exitReview(){
-  reviewIdx=null;
-  const tmp=getBoardAtMove(moveIdx);
-  engine.b=[...tmp.b];engine.turn=tmp.turn;engine.castle={...tmp.castle};engine.ep=tmp.ep;engine.last=tmp.last;
-  renderBoard();updHistory();updReviewNav();
-}
-function updReviewNav(){
-  const nav=document.getElementById('review-nav');
-  const inReview=reviewIdx!==null;
-  nav.classList.toggle('hidden',!inReview);
-  if(!inReview)return;
-  const lbl=document.getElementById('rev-label');
-  lbl.textContent=reviewIdx===0?'beginpositie':`zet ${reviewIdx} / ${parsed.length}`;
-  document.getElementById('rev-first').disabled=reviewIdx<=0;
-  document.getElementById('rev-prev').disabled=reviewIdx<=0;
-  document.getElementById('rev-next').disabled=reviewIdx>=moveIdx;
-  document.getElementById('rev-last').disabled=reviewIdx>=moveIdx;
-}
-function updHistory(){
-  const el=document.getElementById('move-history');el.innerHTML='';
-  const prefixLen=activeOp&&activeOp.prefixMoves?activeOp.prefixMoves.length:0;
-  for(let i=0;i<parsed.length;i+=2){
-    const globalI=i+prefixLen;
-    const sp=document.createElement('span');
-    const w=parsed[i],b=parsed[i+1];
-    sp.innerHTML=`<span class="mv-num">${Math.floor(globalI/2)+1}.</span>`;
-    const mkCls=(mi)=>{
-      const played=mi<=moveIdx;
-      const isLive=reviewIdx===null&&mi===moveIdx;
-      const isRev=reviewIdx!==null&&mi===reviewIdx;
-      return 'mv-san'+(played?' clickable':'')+(played&&!isLive&&!isRev?' done':'')+(isLive?' cur':'')+(isRev?' review':'');
-    };
-    const wEl=document.createElement('span');
-    wEl.className=mkCls(i+1);
-    wEl.dataset.mi=i+1;
-    wEl.textContent=w.san;
-    sp.appendChild(wEl);
-    if(b){
-      const bEl=document.createElement('span');
-      bEl.className=mkCls(i+2);
-      bEl.dataset.mi=i+2;
-      bEl.textContent=b.san;
-      sp.appendChild(bEl);
+  function clear(keep_headers) {
+    if (typeof keep_headers === 'undefined') {
+      keep_headers = false
     }
-    el.appendChild(sp);
+
+    board = new Array(128)
+    kings = { w: EMPTY, b: EMPTY }
+    turn = WHITE
+    castling = { w: 0, b: 0 }
+    ep_square = EMPTY
+    half_moves = 0
+    move_number = 1
+    history = []
+    if (!keep_headers) header = {}
+    update_setup(generate_fen())
   }
-  el.querySelectorAll('.mv-san.clickable').forEach(span=>{
-    span.addEventListener('click',()=>{
-      const mi=parseInt(span.dataset.mi);
-      if(mi>moveIdx)return;
-      enterReview(mi);
-    });
-  });
-  const active=el.querySelector('.cur,.review');
-  if(active)active.scrollIntoView({block:'nearest'});
-  else el.scrollTop=el.scrollHeight;
-}
-function updStats(){
-  document.getElementById('s-c').textContent=sessionStats.c;
-  document.getElementById('s-w').textContent=sessionStats.w;
-}
-function opLabel(op){return op.category&&op.name?op.category+' - '+op.name:op.category||op.name||'';}
 
-function updOpList(){
-  const el=document.getElementById('op-list');
-  // Build category set
-  const cats=[...new Set(openings.map(o=>o.category||'')).values()].filter(c=>c);
-  // Update datalist for autocomplete
-  const dl=document.getElementById('category-suggestions');
-  if(dl){dl.innerHTML=cats.map(c=>`<option value="${c}">`).join('');}
-  // Update category filter buttons
-  const cf=document.getElementById('cat-filter');
-  if(cf){
-    cf.innerHTML='';
-    const allBtn=document.createElement('button');
-    allBtn.className='btn-sm'+(activeCategory===null?' cat-active':'');
-    allBtn.textContent='Alle';
-    allBtn.onclick=()=>{activeCategory=null;updOpList();};
-    cf.appendChild(allBtn);
-    cats.forEach(c=>{
-      const b=document.createElement('button');
-      b.className='btn-sm'+(activeCategory===c?' cat-active':'');
-      b.textContent=c;
-      b.onclick=()=>{activeCategory=(activeCategory===c?null:c);updOpList();};
-      cf.appendChild(b);
+  function reset() {
+    load(DEFAULT_POSITION)
+  }
+
+  function load(fen, keep_headers) {
+    if (typeof keep_headers === 'undefined') {
+      keep_headers = false
+    }
+
+    var tokens = fen.split(/\s+/)
+    var position = tokens[0]
+    var square = 0
+
+    if (!validate_fen(fen).valid) {
+      return false
+    }
+
+    clear(keep_headers)
+
+    for (var i = 0; i < position.length; i++) {
+      var piece = position.charAt(i)
+
+      if (piece === '/') {
+        square += 8
+      } else if (is_digit(piece)) {
+        square += parseInt(piece, 10)
+      } else {
+        var color = piece < 'a' ? WHITE : BLACK
+        put({ type: piece.toLowerCase(), color: color }, algebraic(square))
+        square++
+      }
+    }
+
+    turn = tokens[1]
+
+    if (tokens[2].indexOf('K') > -1) {
+      castling.w |= BITS.KSIDE_CASTLE
+    }
+    if (tokens[2].indexOf('Q') > -1) {
+      castling.w |= BITS.QSIDE_CASTLE
+    }
+    if (tokens[2].indexOf('k') > -1) {
+      castling.b |= BITS.KSIDE_CASTLE
+    }
+    if (tokens[2].indexOf('q') > -1) {
+      castling.b |= BITS.QSIDE_CASTLE
+    }
+
+    ep_square = tokens[3] === '-' ? EMPTY : SQUARES[tokens[3]]
+    half_moves = parseInt(tokens[4], 10)
+    move_number = parseInt(tokens[5], 10)
+
+    update_setup(generate_fen())
+
+    return true
+  }
+
+  /* TODO: this function is pretty much crap - it validates structure but
+   * completely ignores content (e.g. doesn't verify that each side has a king)
+   * ... we should rewrite this, and ditch the silly error_number field while
+   * we're at it
+   */
+  function validate_fen(fen) {
+    var errors = {
+      0: 'No errors.',
+      1: 'FEN string must contain six space-delimited fields.',
+      2: '6th field (move number) must be a positive integer.',
+      3: '5th field (half move counter) must be a non-negative integer.',
+      4: '4th field (en-passant square) is invalid.',
+      5: '3rd field (castling availability) is invalid.',
+      6: '2nd field (side to move) is invalid.',
+      7: "1st field (piece positions) does not contain 8 '/'-delimited rows.",
+      8: '1st field (piece positions) is invalid [consecutive numbers].',
+      9: '1st field (piece positions) is invalid [invalid piece].',
+      10: '1st field (piece positions) is invalid [row too large].',
+      11: 'Illegal en-passant square'
+    }
+
+    /* 1st criterion: 6 space-seperated fields? */
+    var tokens = fen.split(/\s+/)
+    if (tokens.length !== 6) {
+      return { valid: false, error_number: 1, error: errors[1] }
+    }
+
+    /* 2nd criterion: move number field is a integer value > 0? */
+    if (isNaN(tokens[5]) || parseInt(tokens[5], 10) <= 0) {
+      return { valid: false, error_number: 2, error: errors[2] }
+    }
+
+    /* 3rd criterion: half move counter is an integer >= 0? */
+    if (isNaN(tokens[4]) || parseInt(tokens[4], 10) < 0) {
+      return { valid: false, error_number: 3, error: errors[3] }
+    }
+
+    /* 4th criterion: 4th field is a valid e.p.-string? */
+    if (!/^(-|[abcdefgh][36])$/.test(tokens[3])) {
+      return { valid: false, error_number: 4, error: errors[4] }
+    }
+
+    /* 5th criterion: 3th field is a valid castle-string? */
+    if (!/^(KQ?k?q?|Qk?q?|kq?|q|-)$/.test(tokens[2])) {
+      return { valid: false, error_number: 5, error: errors[5] }
+    }
+
+    /* 6th criterion: 2nd field is "w" (white) or "b" (black)? */
+    if (!/^(w|b)$/.test(tokens[1])) {
+      return { valid: false, error_number: 6, error: errors[6] }
+    }
+
+    /* 7th criterion: 1st field contains 8 rows? */
+    var rows = tokens[0].split('/')
+    if (rows.length !== 8) {
+      return { valid: false, error_number: 7, error: errors[7] }
+    }
+
+    /* 8th criterion: every row is valid? */
+    for (var i = 0; i < rows.length; i++) {
+      /* check for right sum of fields AND not two numbers in succession */
+      var sum_fields = 0
+      var previous_was_number = false
+
+      for (var k = 0; k < rows[i].length; k++) {
+        if (!isNaN(rows[i][k])) {
+          if (previous_was_number) {
+            return { valid: false, error_number: 8, error: errors[8] }
+          }
+          sum_fields += parseInt(rows[i][k], 10)
+          previous_was_number = true
+        } else {
+          if (!/^[prnbqkPRNBQK]$/.test(rows[i][k])) {
+            return { valid: false, error_number: 9, error: errors[9] }
+          }
+          sum_fields += 1
+          previous_was_number = false
+        }
+      }
+      if (sum_fields !== 8) {
+        return { valid: false, error_number: 10, error: errors[10] }
+      }
+    }
+
+    if (
+      (tokens[3][1] == '3' && tokens[1] == 'w') ||
+      (tokens[3][1] == '6' && tokens[1] == 'b')
+    ) {
+      return { valid: false, error_number: 11, error: errors[11] }
+    }
+
+    /* everything's okay! */
+    return { valid: true, error_number: 0, error: errors[0] }
+  }
+
+  function generate_fen() {
+    var empty = 0
+    var fen = ''
+
+    for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
+      if (board[i] == null) {
+        empty++
+      } else {
+        if (empty > 0) {
+          fen += empty
+          empty = 0
+        }
+        var color = board[i].color
+        var piece = board[i].type
+
+        fen += color === WHITE ? piece.toUpperCase() : piece.toLowerCase()
+      }
+
+      if ((i + 1) & 0x88) {
+        if (empty > 0) {
+          fen += empty
+        }
+
+        if (i !== SQUARES.h1) {
+          fen += '/'
+        }
+
+        empty = 0
+        i += 8
+      }
+    }
+
+    var cflags = ''
+    if (castling[WHITE] & BITS.KSIDE_CASTLE) {
+      cflags += 'K'
+    }
+    if (castling[WHITE] & BITS.QSIDE_CASTLE) {
+      cflags += 'Q'
+    }
+    if (castling[BLACK] & BITS.KSIDE_CASTLE) {
+      cflags += 'k'
+    }
+    if (castling[BLACK] & BITS.QSIDE_CASTLE) {
+      cflags += 'q'
+    }
+
+    /* do we have an empty castling flag? */
+    cflags = cflags || '-'
+    var epflags = ep_square === EMPTY ? '-' : algebraic(ep_square)
+
+    return [fen, turn, cflags, epflags, half_moves, move_number].join(' ')
+  }
+
+  function set_header(args) {
+    for (var i = 0; i < args.length; i += 2) {
+      if (typeof args[i] === 'string' && typeof args[i + 1] === 'string') {
+        header[args[i]] = args[i + 1]
+      }
+    }
+    return header
+  }
+
+  /* called when the initial board setup is changed with put() or remove().
+   * modifies the SetUp and FEN properties of the header object.  if the FEN is
+   * equal to the default position, the SetUp and FEN are deleted
+   * the setup is only updated if history.length is zero, ie moves haven't been
+   * made.
+   */
+  function update_setup(fen) {
+    if (history.length > 0) return
+
+    if (fen !== DEFAULT_POSITION) {
+      header['SetUp'] = '1'
+      header['FEN'] = fen
+    } else {
+      delete header['SetUp']
+      delete header['FEN']
+    }
+  }
+
+  function get(square) {
+    var piece = board[SQUARES[square]]
+    return piece ? { type: piece.type, color: piece.color } : null
+  }
+
+  function put(piece, square) {
+    /* check for valid piece object */
+    if (!('type' in piece && 'color' in piece)) {
+      return false
+    }
+
+    /* check for piece */
+    if (SYMBOLS.indexOf(piece.type.toLowerCase()) === -1) {
+      return false
+    }
+
+    /* check for valid square */
+    if (!(square in SQUARES)) {
+      return false
+    }
+
+    var sq = SQUARES[square]
+
+    /* don't let the user place more than one king */
+    if (
+      piece.type == KING &&
+      !(kings[piece.color] == EMPTY || kings[piece.color] == sq)
+    ) {
+      return false
+    }
+
+    board[sq] = { type: piece.type, color: piece.color }
+    if (piece.type === KING) {
+      kings[piece.color] = sq
+    }
+
+    update_setup(generate_fen())
+
+    return true
+  }
+
+  function remove(square) {
+    var piece = get(square)
+    board[SQUARES[square]] = null
+    if (piece && piece.type === KING) {
+      kings[piece.color] = EMPTY
+    }
+
+    update_setup(generate_fen())
+
+    return piece
+  }
+
+  function build_move(board, from, to, flags, promotion) {
+    var move = {
+      color: turn,
+      from: from,
+      to: to,
+      flags: flags,
+      piece: board[from].type
+    }
+
+    if (promotion) {
+      move.flags |= BITS.PROMOTION
+      move.promotion = promotion
+    }
+
+    if (board[to]) {
+      move.captured = board[to].type
+    } else if (flags & BITS.EP_CAPTURE) {
+      move.captured = PAWN
+    }
+    return move
+  }
+
+  function generate_moves(options) {
+    function add_move(board, moves, from, to, flags) {
+      /* if pawn promotion */
+      if (
+        board[from].type === PAWN &&
+        (rank(to) === RANK_8 || rank(to) === RANK_1)
+      ) {
+        var pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
+        for (var i = 0, len = pieces.length; i < len; i++) {
+          moves.push(build_move(board, from, to, flags, pieces[i]))
+        }
+      } else {
+        moves.push(build_move(board, from, to, flags))
+      }
+    }
+
+    var moves = []
+    var us = turn
+    var them = swap_color(us)
+    var second_rank = { b: RANK_7, w: RANK_2 }
+
+    var first_sq = SQUARES.a8
+    var last_sq = SQUARES.h1
+    var single_square = false
+
+    /* do we want legal moves? */
+    var legal =
+      typeof options !== 'undefined' && 'legal' in options
+        ? options.legal
+        : true
+
+    /* are we generating moves for a single square? */
+    if (typeof options !== 'undefined' && 'square' in options) {
+      if (options.square in SQUARES) {
+        first_sq = last_sq = SQUARES[options.square]
+        single_square = true
+      } else {
+        /* invalid square */
+        return []
+      }
+    }
+
+    for (var i = first_sq; i <= last_sq; i++) {
+      /* did we run off the end of the board */
+      if (i & 0x88) {
+        i += 7
+        continue
+      }
+
+      var piece = board[i]
+      if (piece == null || piece.color !== us) {
+        continue
+      }
+
+      if (piece.type === PAWN) {
+        /* single square, non-capturing */
+        var square = i + PAWN_OFFSETS[us][0]
+        if (board[square] == null) {
+          add_move(board, moves, i, square, BITS.NORMAL)
+
+          /* double square */
+          var square = i + PAWN_OFFSETS[us][1]
+          if (second_rank[us] === rank(i) && board[square] == null) {
+            add_move(board, moves, i, square, BITS.BIG_PAWN)
+          }
+        }
+
+        /* pawn captures */
+        for (j = 2; j < 4; j++) {
+          var square = i + PAWN_OFFSETS[us][j]
+          if (square & 0x88) continue
+
+          if (board[square] != null && board[square].color === them) {
+            add_move(board, moves, i, square, BITS.CAPTURE)
+          } else if (square === ep_square) {
+            add_move(board, moves, i, ep_square, BITS.EP_CAPTURE)
+          }
+        }
+      } else {
+        for (var j = 0, len = PIECE_OFFSETS[piece.type].length; j < len; j++) {
+          var offset = PIECE_OFFSETS[piece.type][j]
+          var square = i
+
+          while (true) {
+            square += offset
+            if (square & 0x88) break
+
+            if (board[square] == null) {
+              add_move(board, moves, i, square, BITS.NORMAL)
+            } else {
+              if (board[square].color === us) break
+              add_move(board, moves, i, square, BITS.CAPTURE)
+              break
+            }
+
+            /* break, if knight or king */
+            if (piece.type === 'n' || piece.type === 'k') break
+          }
+        }
+      }
+    }
+
+    /* check for castling if: a) we're generating all moves, or b) we're doing
+     * single square move generation on the king's square
+     */
+    if (!single_square || last_sq === kings[us]) {
+      /* king-side castling */
+      if (castling[us] & BITS.KSIDE_CASTLE) {
+        var castling_from = kings[us]
+        var castling_to = castling_from + 2
+
+        if (
+          board[castling_from + 1] == null &&
+          board[castling_to] == null &&
+          !attacked(them, kings[us]) &&
+          !attacked(them, castling_from + 1) &&
+          !attacked(them, castling_to)
+        ) {
+          add_move(board, moves, kings[us], castling_to, BITS.KSIDE_CASTLE)
+        }
+      }
+
+      /* queen-side castling */
+      if (castling[us] & BITS.QSIDE_CASTLE) {
+        var castling_from = kings[us]
+        var castling_to = castling_from - 2
+
+        if (
+          board[castling_from - 1] == null &&
+          board[castling_from - 2] == null &&
+          board[castling_from - 3] == null &&
+          !attacked(them, kings[us]) &&
+          !attacked(them, castling_from - 1) &&
+          !attacked(them, castling_to)
+        ) {
+          add_move(board, moves, kings[us], castling_to, BITS.QSIDE_CASTLE)
+        }
+      }
+    }
+
+    /* return all pseudo-legal moves (this includes moves that allow the king
+     * to be captured)
+     */
+    if (!legal) {
+      return moves
+    }
+
+    /* filter out illegal moves */
+    var legal_moves = []
+    for (var i = 0, len = moves.length; i < len; i++) {
+      make_move(moves[i])
+      if (!king_attacked(us)) {
+        legal_moves.push(moves[i])
+      }
+      undo_move()
+    }
+
+    return legal_moves
+  }
+
+  /* convert a move from 0x88 coordinates to Standard Algebraic Notation
+   * (SAN)
+   *
+   * @param {boolean} sloppy Use the sloppy SAN generator to work around over
+   * disambiguation bugs in Fritz and Chessbase.  See below:
+   *
+   * r1bqkbnr/ppp2ppp/2n5/1B1pP3/4P3/8/PPPP2PP/RNBQK1NR b KQkq - 2 4
+   * 4. ... Nge7 is overly disambiguated because the knight on c6 is pinned
+   * 4. ... Ne7 is technically the valid SAN
+   */
+  function move_to_san(move, sloppy) {
+    var output = ''
+
+    if (move.flags & BITS.KSIDE_CASTLE) {
+      output = 'O-O'
+    } else if (move.flags & BITS.QSIDE_CASTLE) {
+      output = 'O-O-O'
+    } else {
+      var disambiguator = get_disambiguator(move, sloppy)
+
+      if (move.piece !== PAWN) {
+        output += move.piece.toUpperCase() + disambiguator
+      }
+
+      if (move.flags & (BITS.CAPTURE | BITS.EP_CAPTURE)) {
+        if (move.piece === PAWN) {
+          output += algebraic(move.from)[0]
+        }
+        output += 'x'
+      }
+
+      output += algebraic(move.to)
+
+      if (move.flags & BITS.PROMOTION) {
+        output += '=' + move.promotion.toUpperCase()
+      }
+    }
+
+    make_move(move)
+    if (in_check()) {
+      if (in_checkmate()) {
+        output += '#'
+      } else {
+        output += '+'
+      }
+    }
+    undo_move()
+
+    return output
+  }
+
+  // parses all of the decorators out of a SAN string
+  function stripped_san(move) {
+    return move.replace(/=/, '').replace(/[+#]?[?!]*$/, '')
+  }
+
+  function attacked(color, square) {
+    for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
+      /* did we run off the end of the board */
+      if (i & 0x88) {
+        i += 7
+        continue
+      }
+
+      /* if empty square or wrong color */
+      if (board[i] == null || board[i].color !== color) continue
+
+      var piece = board[i]
+      var difference = i - square
+      var index = difference + 119
+
+      if (ATTACKS[index] & (1 << SHIFTS[piece.type])) {
+        if (piece.type === PAWN) {
+          if (difference > 0) {
+            if (piece.color === WHITE) return true
+          } else {
+            if (piece.color === BLACK) return true
+          }
+          continue
+        }
+
+        /* if the piece is a knight or a king */
+        if (piece.type === 'n' || piece.type === 'k') return true
+
+        var offset = RAYS[index]
+        var j = i + offset
+
+        var blocked = false
+        while (j !== square) {
+          if (board[j] != null) {
+            blocked = true
+            break
+          }
+          j += offset
+        }
+
+        if (!blocked) return true
+      }
+    }
+
+    return false
+  }
+
+  function king_attacked(color) {
+    return attacked(swap_color(color), kings[color])
+  }
+
+  function in_check() {
+    return king_attacked(turn)
+  }
+
+  function in_checkmate() {
+    return in_check() && generate_moves().length === 0
+  }
+
+  function in_stalemate() {
+    return !in_check() && generate_moves().length === 0
+  }
+
+  function insufficient_material() {
+    var pieces = {}
+    var bishops = []
+    var num_pieces = 0
+    var sq_color = 0
+
+    for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
+      sq_color = (sq_color + 1) % 2
+      if (i & 0x88) {
+        i += 7
+        continue
+      }
+
+      var piece = board[i]
+      if (piece) {
+        pieces[piece.type] = piece.type in pieces ? pieces[piece.type] + 1 : 1
+        if (piece.type === BISHOP) {
+          bishops.push(sq_color)
+        }
+        num_pieces++
+      }
+    }
+
+    /* k vs. k */
+    if (num_pieces === 2) {
+      return true
+    } else if (
+      /* k vs. kn .... or .... k vs. kb */
+      num_pieces === 3 &&
+      (pieces[BISHOP] === 1 || pieces[KNIGHT] === 1)
+    ) {
+      return true
+    } else if (num_pieces === pieces[BISHOP] + 2) {
+      /* kb vs. kb where any number of bishops are all on the same color */
+      var sum = 0
+      var len = bishops.length
+      for (var i = 0; i < len; i++) {
+        sum += bishops[i]
+      }
+      if (sum === 0 || sum === len) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  function in_threefold_repetition() {
+    /* TODO: while this function is fine for casual use, a better
+     * implementation would use a Zobrist key (instead of FEN). the
+     * Zobrist key would be maintained in the make_move/undo_move functions,
+     * avoiding the costly that we do below.
+     */
+    var moves = []
+    var positions = {}
+    var repetition = false
+
+    while (true) {
+      var move = undo_move()
+      if (!move) break
+      moves.push(move)
+    }
+
+    while (true) {
+      /* remove the last two fields in the FEN string, they're not needed
+       * when checking for draw by rep */
+      var fen = generate_fen()
+        .split(' ')
+        .slice(0, 4)
+        .join(' ')
+
+      /* has the position occurred three or move times */
+      positions[fen] = fen in positions ? positions[fen] + 1 : 1
+      if (positions[fen] >= 3) {
+        repetition = true
+      }
+
+      if (!moves.length) {
+        break
+      }
+      make_move(moves.pop())
+    }
+
+    return repetition
+  }
+
+  function push(move) {
+    history.push({
+      move: move,
+      kings: { b: kings.b, w: kings.w },
+      turn: turn,
+      castling: { b: castling.b, w: castling.w },
+      ep_square: ep_square,
+      half_moves: half_moves,
+      move_number: move_number
+    })
+  }
+
+  function make_move(move) {
+    var us = turn
+    var them = swap_color(us)
+    push(move)
+
+    board[move.to] = board[move.from]
+    board[move.from] = null
+
+    /* if ep capture, remove the captured pawn */
+    if (move.flags & BITS.EP_CAPTURE) {
+      if (turn === BLACK) {
+        board[move.to - 16] = null
+      } else {
+        board[move.to + 16] = null
+      }
+    }
+
+    /* if pawn promotion, replace with new piece */
+    if (move.flags & BITS.PROMOTION) {
+      board[move.to] = { type: move.promotion, color: us }
+    }
+
+    /* if we moved the king */
+    if (board[move.to].type === KING) {
+      kings[board[move.to].color] = move.to
+
+      /* if we castled, move the rook next to the king */
+      if (move.flags & BITS.KSIDE_CASTLE) {
+        var castling_to = move.to - 1
+        var castling_from = move.to + 1
+        board[castling_to] = board[castling_from]
+        board[castling_from] = null
+      } else if (move.flags & BITS.QSIDE_CASTLE) {
+        var castling_to = move.to + 1
+        var castling_from = move.to - 2
+        board[castling_to] = board[castling_from]
+        board[castling_from] = null
+      }
+
+      /* turn off castling */
+      castling[us] = ''
+    }
+
+    /* turn off castling if we move a rook */
+    if (castling[us]) {
+      for (var i = 0, len = ROOKS[us].length; i < len; i++) {
+        if (
+          move.from === ROOKS[us][i].square &&
+          castling[us] & ROOKS[us][i].flag
+        ) {
+          castling[us] ^= ROOKS[us][i].flag
+          break
+        }
+      }
+    }
+
+    /* turn off castling if we capture a rook */
+    if (castling[them]) {
+      for (var i = 0, len = ROOKS[them].length; i < len; i++) {
+        if (
+          move.to === ROOKS[them][i].square &&
+          castling[them] & ROOKS[them][i].flag
+        ) {
+          castling[them] ^= ROOKS[them][i].flag
+          break
+        }
+      }
+    }
+
+    /* if big pawn move, update the en passant square */
+    if (move.flags & BITS.BIG_PAWN) {
+      if (turn === 'b') {
+        ep_square = move.to - 16
+      } else {
+        ep_square = move.to + 16
+      }
+    } else {
+      ep_square = EMPTY
+    }
+
+    /* reset the 50 move counter if a pawn is moved or a piece is captured */
+    if (move.piece === PAWN) {
+      half_moves = 0
+    } else if (move.flags & (BITS.CAPTURE | BITS.EP_CAPTURE)) {
+      half_moves = 0
+    } else {
+      half_moves++
+    }
+
+    if (turn === BLACK) {
+      move_number++
+    }
+    turn = swap_color(turn)
+  }
+
+  function undo_move() {
+    var old = history.pop()
+    if (old == null) {
+      return null
+    }
+
+    var move = old.move
+    kings = old.kings
+    turn = old.turn
+    castling = old.castling
+    ep_square = old.ep_square
+    half_moves = old.half_moves
+    move_number = old.move_number
+
+    var us = turn
+    var them = swap_color(turn)
+
+    board[move.from] = board[move.to]
+    board[move.from].type = move.piece // to undo any promotions
+    board[move.to] = null
+
+    if (move.flags & BITS.CAPTURE) {
+      board[move.to] = { type: move.captured, color: them }
+    } else if (move.flags & BITS.EP_CAPTURE) {
+      var index
+      if (us === BLACK) {
+        index = move.to - 16
+      } else {
+        index = move.to + 16
+      }
+      board[index] = { type: PAWN, color: them }
+    }
+
+    if (move.flags & (BITS.KSIDE_CASTLE | BITS.QSIDE_CASTLE)) {
+      var castling_to, castling_from
+      if (move.flags & BITS.KSIDE_CASTLE) {
+        castling_to = move.to + 1
+        castling_from = move.to - 1
+      } else if (move.flags & BITS.QSIDE_CASTLE) {
+        castling_to = move.to - 2
+        castling_from = move.to + 1
+      }
+
+      board[castling_to] = board[castling_from]
+      board[castling_from] = null
+    }
+
+    return move
+  }
+
+  /* this function is used to uniquely identify ambiguous moves */
+  function get_disambiguator(move, sloppy) {
+    var moves = generate_moves({ legal: !sloppy })
+
+    var from = move.from
+    var to = move.to
+    var piece = move.piece
+
+    var ambiguities = 0
+    var same_rank = 0
+    var same_file = 0
+
+    for (var i = 0, len = moves.length; i < len; i++) {
+      var ambig_from = moves[i].from
+      var ambig_to = moves[i].to
+      var ambig_piece = moves[i].piece
+
+      /* if a move of the same piece type ends on the same to square, we'll
+       * need to add a disambiguator to the algebraic notation
+       */
+      if (piece === ambig_piece && from !== ambig_from && to === ambig_to) {
+        ambiguities++
+
+        if (rank(from) === rank(ambig_from)) {
+          same_rank++
+        }
+
+        if (file(from) === file(ambig_from)) {
+          same_file++
+        }
+      }
+    }
+
+    if (ambiguities > 0) {
+      /* if there exists a similar moving piece on the same rank and file as
+       * the move in question, use the square as the disambiguator
+       */
+      if (same_rank > 0 && same_file > 0) {
+        return algebraic(from)
+      } else if (same_file > 0) {
+        /* if the moving piece rests on the same file, use the rank symbol as the
+         * disambiguator
+         */
+        return algebraic(from).charAt(1)
+      } else {
+        /* else use the file symbol */
+        return algebraic(from).charAt(0)
+      }
+    }
+
+    return ''
+  }
+
+  function ascii() {
+    var s = '   +------------------------+\n'
+    for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
+      /* display the rank */
+      if (file(i) === 0) {
+        s += ' ' + '87654321'[rank(i)] + ' |'
+      }
+
+      /* empty piece */
+      if (board[i] == null) {
+        s += ' . '
+      } else {
+        var piece = board[i].type
+        var color = board[i].color
+        var symbol = color === WHITE ? piece.toUpperCase() : piece.toLowerCase()
+        s += ' ' + symbol + ' '
+      }
+
+      if ((i + 1) & 0x88) {
+        s += '|\n'
+        i += 8
+      }
+    }
+    s += '   +------------------------+\n'
+    s += '     a  b  c  d  e  f  g  h\n'
+
+    return s
+  }
+
+  // convert a move from Standard Algebraic Notation (SAN) to 0x88 coordinates
+  function move_from_san(move, sloppy) {
+    // strip off any move decorations: e.g Nf3+?!
+    var clean_move = stripped_san(move)
+
+    // if we're using the sloppy parser run a regex to grab piece, to, and from
+    // this should parse invalid SAN like: Pe2-e4, Rc1c4, Qf3xf7
+    if (sloppy) {
+      var matches = clean_move.match(
+        /([pnbrqkPNBRQK])?([a-h][1-8])x?-?([a-h][1-8])([qrbnQRBN])?/
+      )
+      if (matches) {
+        var piece = matches[1]
+        var from = matches[2]
+        var to = matches[3]
+        var promotion = matches[4]
+      }
+    }
+
+    var moves = generate_moves()
+    for (var i = 0, len = moves.length; i < len; i++) {
+      // try the strict parser first, then the sloppy parser if requested
+      // by the user
+      if (
+        clean_move === stripped_san(move_to_san(moves[i])) ||
+        (sloppy && clean_move === stripped_san(move_to_san(moves[i], true)))
+      ) {
+        return moves[i]
+      } else {
+        if (
+          matches &&
+          (!piece || piece.toLowerCase() == moves[i].piece) &&
+          SQUARES[from] == moves[i].from &&
+          SQUARES[to] == moves[i].to &&
+          (!promotion || promotion.toLowerCase() == moves[i].promotion)
+        ) {
+          return moves[i]
+        }
+      }
+    }
+
+    return null
+  }
+
+  /*****************************************************************************
+   * UTILITY FUNCTIONS
+   ****************************************************************************/
+  function rank(i) {
+    return i >> 4
+  }
+
+  function file(i) {
+    return i & 15
+  }
+
+  function algebraic(i) {
+    var f = file(i),
+      r = rank(i)
+    return 'abcdefgh'.substring(f, f + 1) + '87654321'.substring(r, r + 1)
+  }
+
+  function swap_color(c) {
+    return c === WHITE ? BLACK : WHITE
+  }
+
+  function is_digit(c) {
+    return '0123456789'.indexOf(c) !== -1
+  }
+
+  /* pretty = external move object */
+  function make_pretty(ugly_move) {
+    var move = clone(ugly_move)
+    move.san = move_to_san(move, false)
+    move.to = algebraic(move.to)
+    move.from = algebraic(move.from)
+
+    var flags = ''
+
+    for (var flag in BITS) {
+      if (BITS[flag] & move.flags) {
+        flags += FLAGS[flag]
+      }
+    }
+    move.flags = flags
+
+    return move
+  }
+
+  function clone(obj) {
+    var dupe = obj instanceof Array ? [] : {}
+
+    for (var property in obj) {
+      if (typeof property === 'object') {
+        dupe[property] = clone(obj[property])
+      } else {
+        dupe[property] = obj[property]
+      }
+    }
+
+    return dupe
+  }
+
+  function trim(str) {
+    return str.replace(/^\s+|\s+$/g, '')
+  }
+
+  /*****************************************************************************
+   * DEBUGGING UTILITIES
+   ****************************************************************************/
+  function perft(depth) {
+    var moves = generate_moves({ legal: false })
+    var nodes = 0
+    var color = turn
+
+    for (var i = 0, len = moves.length; i < len; i++) {
+      make_move(moves[i])
+      if (!king_attacked(color)) {
+        if (depth - 1 > 0) {
+          var child_nodes = perft(depth - 1)
+          nodes += child_nodes
+        } else {
+          nodes++
+        }
+      }
+      undo_move()
+    }
+
+    return nodes
+  }
+
+  return {
+    /***************************************************************************
+     * PUBLIC CONSTANTS (is there a better way to do this?)
+     **************************************************************************/
+    WHITE: WHITE,
+    BLACK: BLACK,
+    PAWN: PAWN,
+    KNIGHT: KNIGHT,
+    BISHOP: BISHOP,
+    ROOK: ROOK,
+    QUEEN: QUEEN,
+    KING: KING,
+    SQUARES: (function() {
+      /* from the ECMA-262 spec (section 12.6.4):
+       * "The mechanics of enumerating the properties ... is
+       * implementation dependent"
+       * so: for (var sq in SQUARES) { keys.push(sq); } might not be
+       * ordered correctly
+       */
+      var keys = []
+      for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
+        if (i & 0x88) {
+          i += 7
+          continue
+        }
+        keys.push(algebraic(i))
+      }
+      return keys
+    })(),
+    FLAGS: FLAGS,
+
+    /***************************************************************************
+     * PUBLIC API
+     **************************************************************************/
+    load: function(fen) {
+      return load(fen)
+    },
+
+    reset: function() {
+      return reset()
+    },
+
+    moves: function(options) {
+      /* The internal representation of a chess move is in 0x88 format, and
+       * not meant to be human-readable.  The code below converts the 0x88
+       * square coordinates to algebraic coordinates.  It also prunes an
+       * unnecessary move keys resulting from a verbose call.
+       */
+
+      var ugly_moves = generate_moves(options)
+      var moves = []
+
+      for (var i = 0, len = ugly_moves.length; i < len; i++) {
+        /* does the user want a full move object (most likely not), or just
+         * SAN
+         */
+        if (
+          typeof options !== 'undefined' &&
+          'verbose' in options &&
+          options.verbose
+        ) {
+          moves.push(make_pretty(ugly_moves[i]))
+        } else {
+          moves.push(move_to_san(ugly_moves[i], false))
+        }
+      }
+
+      return moves
+    },
+
+    in_check: function() {
+      return in_check()
+    },
+
+    in_checkmate: function() {
+      return in_checkmate()
+    },
+
+    in_stalemate: function() {
+      return in_stalemate()
+    },
+
+    in_draw: function() {
+      return (
+        half_moves >= 100 ||
+        in_stalemate() ||
+        insufficient_material() ||
+        in_threefold_repetition()
+      )
+    },
+
+    insufficient_material: function() {
+      return insufficient_material()
+    },
+
+    in_threefold_repetition: function() {
+      return in_threefold_repetition()
+    },
+
+    game_over: function() {
+      return (
+        half_moves >= 100 ||
+        in_checkmate() ||
+        in_stalemate() ||
+        insufficient_material() ||
+        in_threefold_repetition()
+      )
+    },
+
+    validate_fen: function(fen) {
+      return validate_fen(fen)
+    },
+
+    fen: function() {
+      return generate_fen()
+    },
+
+    board: function() {
+      var output = [],
+        row = []
+
+      for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
+        if (board[i] == null) {
+          row.push(null)
+        } else {
+          row.push({ type: board[i].type, color: board[i].color })
+        }
+        if ((i + 1) & 0x88) {
+          output.push(row)
+          row = []
+          i += 8
+        }
+      }
+
+      return output
+    },
+
+    pgn: function(options) {
+      /* using the specification from http://www.chessclub.com/help/PGN-spec
+       * example for html usage: .pgn({ max_width: 72, newline_char: "<br />" })
+       */
+      var newline =
+        typeof options === 'object' && typeof options.newline_char === 'string'
+          ? options.newline_char
+          : '\n'
+      var max_width =
+        typeof options === 'object' && typeof options.max_width === 'number'
+          ? options.max_width
+          : 0
+      var result = []
+      var header_exists = false
+
+      /* add the PGN header headerrmation */
+      for (var i in header) {
+        /* TODO: order of enumerated properties in header object is not
+         * guaranteed, see ECMA-262 spec (section 12.6.4)
+         */
+        result.push('[' + i + ' "' + header[i] + '"]' + newline)
+        header_exists = true
+      }
+
+      if (header_exists && history.length) {
+        result.push(newline)
+      }
+
+      /* pop all of history onto reversed_history */
+      var reversed_history = []
+      while (history.length > 0) {
+        reversed_history.push(undo_move())
+      }
+
+      var moves = []
+      var move_string = ''
+
+      /* build the list of moves.  a move_string looks like: "3. e3 e6" */
+      while (reversed_history.length > 0) {
+        var move = reversed_history.pop()
+
+        /* if the position started with black to move, start PGN with 1. ... */
+        if (!history.length && move.color === 'b') {
+          move_string = move_number + '. ...'
+        } else if (move.color === 'w') {
+          /* store the previous generated move_string if we have one */
+          if (move_string.length) {
+            moves.push(move_string)
+          }
+          move_string = move_number + '.'
+        }
+
+        move_string = move_string + ' ' + move_to_san(move, false)
+        make_move(move)
+      }
+
+      /* are there any other leftover moves? */
+      if (move_string.length) {
+        moves.push(move_string)
+      }
+
+      /* is there a result? */
+      if (typeof header.Result !== 'undefined') {
+        moves.push(header.Result)
+      }
+
+      /* history should be back to what is was before we started generating PGN,
+       * so join together moves
+       */
+      if (max_width === 0) {
+        return result.join('') + moves.join(' ')
+      }
+
+      /* wrap the PGN output at max_width */
+      var current_width = 0
+      for (var i = 0; i < moves.length; i++) {
+        /* if the current move will push past max_width */
+        if (current_width + moves[i].length > max_width && i !== 0) {
+          /* don't end the line with whitespace */
+          if (result[result.length - 1] === ' ') {
+            result.pop()
+          }
+
+          result.push(newline)
+          current_width = 0
+        } else if (i !== 0) {
+          result.push(' ')
+          current_width++
+        }
+        result.push(moves[i])
+        current_width += moves[i].length
+      }
+
+      return result.join('')
+    },
+
+    load_pgn: function(pgn, options) {
+      // allow the user to specify the sloppy move parser to work around over
+      // disambiguation bugs in Fritz and Chessbase
+      var sloppy =
+        typeof options !== 'undefined' && 'sloppy' in options
+          ? options.sloppy
+          : false
+
+      function mask(str) {
+        return str.replace(/\\/g, '\\')
+      }
+
+      function has_keys(object) {
+        for (var key in object) {
+          return true
+        }
+        return false
+      }
+
+      function parse_pgn_header(header, options) {
+        var newline_char =
+          typeof options === 'object' &&
+          typeof options.newline_char === 'string'
+            ? options.newline_char
+            : '\r?\n'
+        var header_obj = {}
+        var headers = header.split(new RegExp(mask(newline_char)))
+        var key = ''
+        var value = ''
+
+        for (var i = 0; i < headers.length; i++) {
+          key = headers[i].replace(/^\[([A-Z][A-Za-z]*)\s.*\]$/, '$1')
+          value = headers[i].replace(/^\[[A-Za-z]+\s"(.*)"\]$/, '$1')
+          if (trim(key).length > 0) {
+            header_obj[key] = value
+          }
+        }
+
+        return header_obj
+      }
+
+      var newline_char =
+        typeof options === 'object' && typeof options.newline_char === 'string'
+          ? options.newline_char
+          : '\r?\n'
+
+      // RegExp to split header. Takes advantage of the fact that header and movetext
+      // will always have a blank line between them (ie, two newline_char's).
+      // With default newline_char, will equal: /^(\[((?:\r?\n)|.)*\])(?:\r?\n){2}/
+      var header_regex = new RegExp(
+        '^(\\[((?:' +
+          mask(newline_char) +
+          ')|.)*\\])' +
+          '(?:' +
+          mask(newline_char) +
+          '){2}'
+      )
+
+      // If no header given, begin with moves.
+      var header_string = header_regex.test(pgn)
+        ? header_regex.exec(pgn)[1]
+        : ''
+
+      // Put the board in the starting position
+      reset()
+
+      /* parse PGN header */
+      var headers = parse_pgn_header(header_string, options)
+      for (var key in headers) {
+        set_header([key, headers[key]])
+      }
+
+      /* load the starting position indicated by [Setup '1'] and
+       * [FEN position] */
+      if (headers['SetUp'] === '1') {
+        if (!('FEN' in headers && load(headers['FEN'], true))) {
+          // second argument to load: don't clear the headers
+          return false
+        }
+      }
+
+      /* delete header to get the moves */
+      var ms = pgn
+        .replace(header_string, '')
+        .replace(new RegExp(mask(newline_char), 'g'), ' ')
+
+      /* delete comments */
+      ms = ms.replace(/(\{[^}]+\})+?/g, '')
+
+      /* delete recursive annotation variations */
+      var rav_regex = /(\([^\(\)]+\))+?/g
+      while (rav_regex.test(ms)) {
+        ms = ms.replace(rav_regex, '')
+      }
+
+      /* delete move numbers */
+      ms = ms.replace(/\d+\.(\.\.)?/g, '')
+
+      /* delete ... indicating black to move */
+      ms = ms.replace(/\.\.\./g, '')
+
+      /* delete numeric annotation glyphs */
+      ms = ms.replace(/\$\d+/g, '')
+
+      /* trim and get array of moves */
+      var moves = trim(ms).split(new RegExp(/\s+/))
+
+      /* delete empty entries */
+      moves = moves
+        .join(',')
+        .replace(/,,+/g, ',')
+        .split(',')
+      var move = ''
+
+      for (var half_move = 0; half_move < moves.length - 1; half_move++) {
+        move = move_from_san(moves[half_move], sloppy)
+
+        /* move not possible! (don't clear the board to examine to show the
+         * latest valid position)
+         */
+        if (move == null) {
+          return false
+        } else {
+          make_move(move)
+        }
+      }
+
+      /* examine last move */
+      move = moves[moves.length - 1]
+      if (POSSIBLE_RESULTS.indexOf(move) > -1) {
+        if (has_keys(header) && typeof header.Result === 'undefined') {
+          set_header(['Result', move])
+        }
+      } else {
+        move = move_from_san(move, sloppy)
+        if (move == null) {
+          return false
+        } else {
+          make_move(move)
+        }
+      }
+      return true
+    },
+
+    header: function() {
+      return set_header(arguments)
+    },
+
+    ascii: function() {
+      return ascii()
+    },
+
+    turn: function() {
+      return turn
+    },
+
+    move: function(move, options) {
+      /* The move function can be called with in the following parameters:
+       *
+       * .move('Nxb7')      <- where 'move' is a case-sensitive SAN string
+       *
+       * .move({ from: 'h7', <- where the 'move' is a move object (additional
+       *         to :'h8',      fields are ignored)
+       *         promotion: 'q',
+       *      })
+       */
+
+      // allow the user to specify the sloppy move parser to work around over
+      // disambiguation bugs in Fritz and Chessbase
+      var sloppy =
+        typeof options !== 'undefined' && 'sloppy' in options
+          ? options.sloppy
+          : false
+
+      var move_obj = null
+
+      if (typeof move === 'string') {
+        move_obj = move_from_san(move, sloppy)
+      } else if (typeof move === 'object') {
+        var moves = generate_moves()
+
+        /* convert the pretty move object to an ugly move object */
+        for (var i = 0, len = moves.length; i < len; i++) {
+          if (
+            move.from === algebraic(moves[i].from) &&
+            move.to === algebraic(moves[i].to) &&
+            (!('promotion' in moves[i]) ||
+              move.promotion === moves[i].promotion)
+          ) {
+            move_obj = moves[i]
+            break
+          }
+        }
+      }
+
+      /* failed to find move */
+      if (!move_obj) {
+        return null
+      }
+
+      /* need to make a copy of move because we can't generate SAN after the
+       * move is made
+       */
+      var pretty_move = make_pretty(move_obj)
+
+      make_move(move_obj)
+
+      return pretty_move
+    },
+
+    undo: function() {
+      var move = undo_move()
+      return move ? make_pretty(move) : null
+    },
+
+    clear: function() {
+      return clear()
+    },
+
+    put: function(piece, square) {
+      return put(piece, square)
+    },
+
+    get: function(square) {
+      return get(square)
+    },
+
+    remove: function(square) {
+      return remove(square)
+    },
+
+    perft: function(depth) {
+      return perft(depth)
+    },
+
+    square_color: function(square) {
+      if (square in SQUARES) {
+        var sq_0x88 = SQUARES[square]
+        return (rank(sq_0x88) + file(sq_0x88)) % 2 === 0 ? 'light' : 'dark'
+      }
+
+      return null
+    },
+
+    history: function(options) {
+      var reversed_history = []
+      var move_history = []
+      var verbose =
+        typeof options !== 'undefined' &&
+        'verbose' in options &&
+        options.verbose
+
+      while (history.length > 0) {
+        reversed_history.push(undo_move())
+      }
+
+      while (reversed_history.length > 0) {
+        var move = reversed_history.pop()
+        if (verbose) {
+          move_history.push(make_pretty(move))
+        } else {
+          move_history.push(move_to_san(move))
+        }
+        make_move(move)
+      }
+
+      return move_history
+    }
+  }
+}
+
+/* export Chess object if using node or any other CommonJS compatible
+ * environment */
+if (typeof exports !== 'undefined') exports.Chess = Chess
+/* export Chess object for any RequireJS compatible environment */
+if (typeof define !== 'undefined')
+  define(function() {
+    return Chess
+  })
+
+</script>
+<script>
+/* ===================== BlitzMeister app logic ===================== */
+(function(){
+"use strict";
+
+var STORAGE_KEY = "blitzmeister_openings_v1";
+var START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+var SVG_PIECES_OUTER = {
+  p: '<g transform="translate(-845.176,-59.665) scale(0.9446)"><path d="M 920.08,156.32 C 920.0,155.29 919.95,153.26999999999998 919.95,150.25 C 919.95,139.41 923.3100000000001,131.36 930.0200000000001,126.11 C 932.0000000000001,124.48 934.4100000000001,122.97 937.2500000000001,121.59 C 933.9000000000001,120.56 931.6200000000001,118.02000000000001 930.4100000000001,113.98 C 930.07,112.68 929.8900000000001,111.35000000000001 929.8900000000001,109.97 C 929.8900000000001,104.21 932.8600000000001,100.12 938.8000000000001,97.709 C 937.2500000000001,95.12700000000001 936.48,92.674 936.48,90.351 C 936.48,86.478 938.37,83.594 942.16,81.701 C 943.88,80.83999999999999 945.73,80.41 947.7099999999999,80.41 C 952.0099999999999,80.41 955.1999999999999,82.088 957.2599999999999,85.445 C 958.2099999999999,86.90799999999999 958.6799999999998,88.54299999999999 958.6799999999998,90.351 C 958.6799999999998,92.847 957.9499999999998,95.299 956.4899999999998,97.709 C 959.6699999999997,99.0 961.9499999999998,100.72 963.3299999999998,102.87 C 964.7099999999998,105.2 965.3999999999999,107.56 965.3999999999999,109.97 C 965.3999999999999,114.45 963.8499999999999,117.85 960.7499999999999,120.17 C 959.9699999999999,120.86 959.1099999999999,121.33 958.1699999999998,121.59 C 966.0899999999998,125.64 971.2099999999998,130.93 973.5299999999999,137.47 C 974.7399999999999,141.09 975.3399999999998,145.35 975.3399999999998,150.25 C 975.3399999999998,153.27 975.2899999999998,155.29 975.2099999999998,156.32 L 920.0799999999998,156.32"/></g>',
+  r: '<g transform="translate(-370.135,-59.665) scale(0.9446)"><path d="M 414.87,156.32 L 412.42,153.87 L 412.42,144.70000000000002 L 425.46000000000004,131.79000000000002 L 425.46000000000004,106.10000000000002 L 415.39000000000004,96.16000000000003 L 415.39000000000004,84.67000000000003 L 419.00000000000006,81.05500000000004 L 428.1700000000001,81.05500000000004 L 430.49000000000007,83.25000000000003 L 430.49000000000007,86.47800000000002 L 435.4000000000001,86.47800000000002 L 435.4000000000001,83.25000000000003 L 437.5900000000001,81.05500000000004 L 451.9200000000001,81.05500000000004 L 454.12000000000006,83.25000000000003 L 454.12000000000006,86.47800000000002 L 459.02000000000004,86.47800000000002 L 459.02000000000004,83.25000000000003 L 461.22,81.05500000000004 L 470.51000000000005,81.05500000000004 L 474.13000000000005,84.67000000000003 L 474.13000000000005,96.16000000000003 L 464.06000000000006,106.10000000000002 L 464.06000000000006,131.79000000000002 L 477.1000000000001,144.70000000000002 L 477.1000000000001,153.87 L 474.5100000000001,156.32 L 414.8700000000001,156.32"/></g>',
+  n: '<g transform="translate(-686.544,-59.665) scale(0.9446)"><path d="M 756.54,82.088 C 756.7099999999999,82.088 757.14,82.04499999999999 757.8299999999999,81.95899999999999 C 761.7099999999999,81.95899999999999 765.8399999999999,83.24999999999999 770.2299999999999,85.832 C 770.7399999999999,86.17599999999999 770.9999999999999,86.348 770.9999999999999,86.348 C 773.4999999999999,82.303 775.3899999999999,80.281 776.6799999999998,80.281 C 779.4399999999998,81.83000000000001 781.2399999999998,83.50800000000001 782.0999999999998,85.316 C 782.5299999999997,86.176 783.1799999999998,87.98400000000001 784.0399999999998,90.738 C 784.7299999999999,90.566 785.4199999999998,90.48 786.1099999999999,90.48 C 793.3399999999999,90.48 800.2199999999999,94.912 806.7599999999999,103.78 C 814.5899999999999,114.02 818.5099999999999,127.96000000000001 818.5099999999999,145.61 C 818.5099999999999,149.56 818.3399999999999,153.14000000000001 817.9899999999999,156.32000000000002 L 763.5099999999999,156.32000000000002 C 763.6899999999998,150.55 765.7899999999998,145.09000000000003 769.8399999999999,139.92000000000002 C 770.2699999999999,139.24 770.8699999999999,138.46 771.6499999999999,137.60000000000002 C 774.8299999999998,133.56000000000003 776.7699999999999,130.46000000000004 777.4599999999998,128.31000000000003 C 777.7999999999998,127.19000000000003 778.0599999999998,126.03000000000003 778.2299999999998,124.82000000000004 C 772.5499999999998,127.06000000000003 768.2899999999997,130.37000000000003 765.4499999999998,134.76000000000005 C 764.1599999999999,136.91000000000005 762.7399999999998,139.15000000000003 761.1899999999998,141.47000000000006 C 760.7599999999999,142.16000000000005 760.1099999999998,142.51000000000005 759.2499999999998,142.51000000000005 C 757.0999999999998,142.51000000000005 756.0299999999997,141.17000000000004 756.0299999999997,138.50000000000006 C 755.1599999999997,139.62000000000006 754.1699999999997,140.18000000000006 753.0599999999997,140.18000000000006 C 753.0599999999997,140.18000000000006 752.1999999999997,139.97000000000006 750.4699999999997,139.54000000000008 C 746.7699999999996,138.5900000000001 744.1499999999996,136.96000000000006 742.5999999999997,134.63000000000008 C 742.0799999999997,133.86000000000007 741.5199999999996,132.82000000000008 740.9199999999997,131.5300000000001 C 741.5199999999998,127.83000000000008 744.4899999999998,120.47000000000008 749.8299999999997,109.4600000000001 C 753.6999999999997,101.54000000000009 756.1099999999997,95.8590000000001 757.0599999999997,92.4160000000001 C 757.1399999999998,91.6420000000001 757.1899999999997,90.5230000000001 757.1899999999997,89.0600000000001 C 757.1899999999997,87.8550000000001 756.9699999999997,85.5310000000001 756.5399999999997,82.08800000000011"/></g>',
+  b: '<g transform="translate(-527.851,-63.321) scale(0.9446)"><path d="M 629.41,124.05 L 631.99,133.99 C 631.99,137.0 628.9300000000001,138.76000000000002 622.82,139.28 C 627.3000000000001,141.0 631.47,141.86 635.35,141.86 C 635.86,141.86 638.4,141.73000000000002 642.96,141.47000000000003 C 646.75,141.47000000000003 649.85,143.45000000000002 652.26,147.41000000000003 C 652.6,148.10000000000002 653.03,148.88000000000002 653.55,149.74000000000004 L 648.9,156.84000000000003 C 647.52,158.56000000000003 646.06,159.68000000000004 644.51,160.19000000000003 C 644.17,158.39000000000001 641.41,157.27000000000004 636.25,156.84000000000003 L 633.15,156.58000000000004 C 622.56,155.72000000000003 615.42,153.44000000000005 611.72,149.74000000000004 C 608.36,153.27000000000004 603.24,155.29000000000005 596.36,155.80000000000004 C 594.8100000000001,155.98000000000005 592.79,156.23000000000005 590.29,156.58000000000004 C 584.01,157.10000000000005 580.3499999999999,158.00000000000003 579.3199999999999,159.29000000000005 C 579.14,159.55000000000004 579.01,159.85000000000005 578.93,160.19000000000005 C 576.6899999999999,159.25000000000006 574.5799999999999,157.10000000000005 572.5999999999999,153.74000000000007 C 571.8299999999999,152.36000000000007 570.92,151.03000000000006 569.8899999999999,149.74000000000007 C 572.2199999999999,145.43000000000006 574.7099999999999,142.85000000000008 577.3799999999999,141.99000000000007 C 578.3299999999999,141.65000000000006 579.3599999999999,141.47000000000006 580.4799999999999,141.47000000000006 C 580.4799999999999,141.47000000000006 583.0199999999999,141.60000000000005 588.0899999999999,141.86000000000004 C 592.05,141.86000000000004 596.2299999999999,141.00000000000003 600.6199999999999,139.28000000000003 C 594.5099999999999,138.76000000000002 591.4499999999999,137.00000000000003 591.4499999999999,133.99000000000004 C 591.4499999999999,133.73000000000005 592.14,131.53000000000003 593.52,127.40000000000003 C 593.9499999999999,126.03000000000003 594.16,125.08000000000004 594.16,124.56000000000003 C 588.91,118.19000000000003 586.29,112.56000000000003 586.29,107.65000000000003 C 586.29,101.97000000000003 589.0799999999999,96.80600000000004 594.68,92.15800000000003 C 599.67,87.94100000000003 603.29,85.70300000000003 605.52,85.44500000000004 C 603.63,83.12100000000004 602.68,80.71100000000004 602.68,78.21500000000003 C 602.68,74.17000000000003 604.7099999999999,71.67400000000004 608.75,70.72700000000003 C 609.7,70.46900000000004 610.69,70.34000000000003 611.72,70.34000000000003 C 616.02,70.34000000000003 618.82,71.93200000000003 620.11,75.11700000000003 L 620.76,77.82800000000003 L 620.76,78.21500000000003 C 620.76,80.62500000000003 619.81,83.03500000000003 617.92,85.44500000000004 C 619.55,85.87500000000004 622.0,87.20900000000003 625.28,89.44700000000003 C 633.1899999999999,94.95500000000003 637.15,101.02000000000004 637.15,107.65000000000003 C 637.15,112.64000000000003 634.5699999999999,118.11000000000004 629.41,124.05000000000004"/></g>',
+  q: '<g transform="translate(-210.464,-59.788) scale(0.9446)"><path d="M 303.87000000000023,150.64 C 303.87000000000023,153.04999999999998 299.4400000000002,154.73 290.5800000000002,155.67999999999998 L 278.05000000000024,156.45 L 275.73000000000025,156.45 C 265.23000000000025,156.45 257.23000000000025,155.54999999999998 251.72000000000025,153.73999999999998 C 249.05000000000027,152.95999999999998 247.71000000000026,151.92999999999998 247.71000000000026,150.64 C 247.71000000000026,148.14 248.40000000000026,145.29999999999998 249.78000000000026,142.11999999999998 C 250.73000000000025,140.23 251.20000000000024,138.89 251.20000000000024,138.11999999999998 C 251.20000000000024,136.48 249.22000000000025,133.29999999999998 245.26000000000025,128.55999999999997 C 243.11000000000024,126.06999999999998 241.86000000000024,124.34999999999998 241.52000000000024,123.39999999999998 C 241.52000000000024,122.87999999999998 241.26000000000025,121.71999999999997 240.74000000000024,119.90999999999998 L 239.06000000000023,113.45999999999998 C 237.95000000000022,109.23999999999998 237.21000000000024,104.76999999999998 236.87000000000023,100.02999999999997 C 232.91000000000022,98.39799999999997 230.93000000000023,95.77299999999997 230.93000000000023,92.15799999999997 C 230.93000000000023,89.05999999999997 232.35000000000022,86.86499999999997 235.19000000000023,85.57399999999997 C 236.1400000000002,85.14399999999996 237.17000000000021,84.92799999999997 238.29000000000022,84.92799999999997 C 241.13000000000022,84.92799999999997 243.2400000000002,86.21899999999997 244.62000000000023,88.80099999999997 C 245.22000000000023,89.91999999999997 245.52000000000024,91.03899999999997 245.52000000000024,92.15799999999997 L 244.87000000000023,97.06399999999998 C 244.87000000000023,100.93999999999998 247.63000000000022,105.66999999999997 253.14000000000024,111.25999999999998 C 253.57000000000025,107.73999999999998 253.78000000000023,104.03999999999998 253.78000000000023,100.15999999999998 C 253.78000000000023,94.39599999999999 252.75000000000023,90.73799999999999 250.68000000000023,89.18899999999998 C 250.51000000000025,89.01699999999998 250.34000000000023,88.88699999999997 250.17000000000024,88.80099999999997 C 248.62000000000023,87.85499999999998 247.84000000000023,86.17599999999997 247.84000000000023,83.76599999999998 C 247.84000000000023,80.58199999999998 249.31000000000023,78.38699999999997 252.23000000000022,77.18199999999997 C 253.1800000000002,76.75199999999997 254.17000000000021,76.53699999999998 255.20000000000022,76.53699999999998 C 258.2100000000002,76.53699999999998 260.37000000000023,77.91399999999997 261.6600000000002,80.66799999999998 C 262.1700000000002,81.61499999999998 262.4300000000002,82.64799999999998 262.4300000000002,83.76599999999998 L 261.5300000000002,89.31799999999998 C 261.5300000000002,94.13799999999998 263.9000000000002,101.49999999999999 268.6300000000002,111.38999999999999 C 270.4400000000002,103.29999999999998 271.3400000000002,97.10699999999999 271.3400000000002,92.80299999999998 C 271.3400000000002,89.18899999999998 270.6900000000002,85.87499999999999 269.4000000000002,82.86299999999999 C 268.8900000000002,81.74399999999999 268.6300000000002,80.88299999999998 268.6300000000002,80.28099999999999 C 268.6300000000002,77.09599999999999 270.05000000000024,74.90199999999999 272.8900000000002,73.69699999999999 C 273.8400000000002,73.26599999999999 274.8300000000002,73.05099999999999 275.86000000000024,73.05099999999999 C 278.87000000000023,73.05099999999999 280.98000000000025,74.47099999999999 282.18000000000023,77.31099999999999 C 282.61000000000024,78.258 282.8300000000002,79.24799999999999 282.8300000000002,80.28099999999999 C 282.8300000000002,80.45299999999999 282.1000000000002,82.734 280.6400000000002,87.12299999999999 C 280.2900000000002,88.24199999999999 280.12000000000023,90.13499999999999 280.12000000000023,92.803 C 280.12000000000023,97.107 281.0200000000002,103.3 282.8300000000002,111.39 C 287.4800000000002,101.58 289.80000000000024,94.224 289.80000000000024,89.318 L 289.03000000000026,83.896 L 289.03000000000026,83.766 C 289.03000000000026,80.58200000000001 290.49000000000024,78.387 293.42000000000024,77.182 C 294.36000000000024,76.752 295.35000000000025,76.537 296.39000000000027,76.537 C 299.40000000000026,76.537 301.5500000000003,77.914 302.84000000000026,80.668 C 303.36000000000024,81.61500000000001 303.61000000000024,82.64800000000001 303.61000000000024,83.766 C 303.61000000000024,86.176 302.84000000000026,87.89800000000001 301.29000000000025,88.93 C 298.8800000000002,90.48 297.68000000000023,94.26700000000001 297.68000000000023,100.29 C 297.68000000000023,104.08000000000001 297.8900000000002,107.74000000000001 298.3200000000002,111.26 C 303.8300000000002,105.67 306.5800000000002,100.94 306.5800000000002,97.06400000000001 L 305.9400000000002,92.158 C 305.9400000000002,89.146 307.3200000000002,86.994 310.0700000000002,85.703 C 311.0200000000002,85.187 312.05000000000024,84.928 313.17000000000024,84.928 C 316.27000000000027,84.928 318.46000000000026,86.30499999999999 319.7500000000002,89.06 L 320.5300000000002,91.512 L 320.5300000000002,92.158 C 320.5300000000002,95.601 318.5500000000002,98.226 314.5900000000002,100.03 C 314.0700000000002,105.97 312.6100000000002,113.24000000000001 310.2000000000002,121.85 C 310.0300000000002,122.53999999999999 309.9400000000002,123.05999999999999 309.9400000000002,123.39999999999999 C 309.9400000000002,123.99999999999999 309.30000000000024,124.99 308.0000000000002,126.36999999999999 L 306.4600000000002,128.31 C 302.3200000000002,133.04 300.2600000000002,136.31 300.2600000000002,138.12 C 300.2600000000002,138.63 301.2900000000002,141.3 303.36000000000024,146.12 C 303.7000000000002,147.84 303.87000000000023,149.35 303.87000000000023,150.64000000000001"/></g>',
+  k: '<g transform="translate(-52.256,-59.665) scale(0.9446)"><path d="M 134.51999999999995,147.53999999999996 C 134.34999999999997,153.38999999999996 125.56999999999995,156.31999999999996 108.18999999999996,156.31999999999996 C 90.97299999999996,156.31999999999996 82.23699999999995,153.38999999999996 81.97899999999996,147.53999999999996 C 81.89299999999996,142.02999999999997 81.07499999999996,137.12999999999997 79.52599999999995,132.81999999999996 C 78.57899999999995,130.49999999999997 76.77199999999995,127.52999999999996 74.10399999999996,123.91999999999996 C 70.74699999999996,119.35999999999996 69.06899999999996,115.30999999999996 69.06899999999996,111.77999999999996 C 69.06899999999996,106.26999999999995 71.43499999999996,102.00999999999996 76.16899999999995,98.99999999999996 C 78.83699999999996,97.27899999999995 81.80599999999995,96.41799999999996 85.07699999999996,96.41799999999996 C 89.55199999999995,96.41799999999996 93.81299999999996,98.05399999999996 97.85799999999996,101.31999999999996 C 97.85799999999996,97.36499999999997 98.24499999999996,94.65399999999997 99.01999999999997,93.19099999999996 C 99.62199999999997,91.55499999999996 101.59999999999997,89.57599999999996 104.95999999999997,87.25199999999995 L 104.95999999999997,84.28299999999996 L 99.66499999999996,81.05499999999996 L 99.66499999999996,76.40799999999996 L 104.43999999999997,76.40799999999996 L 105.98999999999997,71.63099999999996 L 110.37999999999997,71.63099999999996 L 112.05999999999997,76.40799999999996 L 116.70999999999998,76.40799999999996 L 116.70999999999998,81.05499999999996 L 111.53999999999998,84.28299999999996 L 111.53999999999998,87.25199999999995 C 114.80999999999997,89.66199999999995 116.83999999999997,91.72799999999995 117.60999999999999,93.44899999999996 L 118.50999999999999,97.19299999999996 C 118.6,98.22599999999996 118.69,99.60299999999995 118.77,101.31999999999995 C 122.82,98.05399999999995 126.99,96.41799999999995 131.29,96.41799999999995 C 137.06,96.41799999999995 141.54,98.61299999999994 144.72,102.99999999999994 C 146.53,105.57999999999994 147.43,108.50999999999995 147.43,111.77999999999994 C 147.43,115.30999999999995 145.75,119.39999999999995 142.4,124.04999999999994 L 139.43,128.17999999999995 C 136.24,132.99999999999994 134.61,139.44999999999996 134.52,147.53999999999996"/></g>',
+};
+function pieceSVG(type, color){
+  return '<svg viewBox="0 0 100 100" class="piece-svg">' + SVG_PIECES_OUTER[type] + '</svg>';
+}
+var FILES = ["a","b","c","d","e","f","g","h"];
+
+/* ---------- State ---------- */
+var openings = [];
+var activeOpeningId = null;
+var mode = "practice"; // 'practice' | 'editor'
+var currentNode = null;
+var chess = new Chess();
+var trainColor = "w";
+var boardFlipped = false;
+var stats = { correct: 0, incorrect: 0 };
+var movesOpen = false;
+var lastMove = null; // {from,to} for highlight
+var sessionEnded = false;
+var drawerOpen = false;
+
+var app = document.getElementById("app");
+
+/* ---------- Utils ---------- */
+function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function el(tag, attrs, children){
+  var e = document.createElement(tag);
+  attrs = attrs || {};
+  for (var k in attrs){
+    if (k === "class") e.className = attrs[k];
+    else if (k === "html") e.innerHTML = attrs[k];
+    else if (k.indexOf("on") === 0 && typeof attrs[k] === "function") e.addEventListener(k.slice(2), attrs[k]);
+    else if (typeof attrs[k] === "boolean"){ if (attrs[k]) e.setAttribute(k, ""); }
+    else e.setAttribute(k, attrs[k]);
+  }
+  (children || []).forEach(function(c){
+    if (c === null || c === undefined) return;
+    if (typeof c === "string") e.appendChild(document.createTextNode(c));
+    else e.appendChild(c);
+  });
+  return e;
+}
+function clear(node){ while(node.firstChild) node.removeChild(node.firstChild); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function showToast(msg){
+  var t = el("div", {class:"toast"}, [msg]);
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 2200);
+}
+
+/* ---------- Persistence ---------- */
+function saveOpenings(){
+  try{
+    var json = JSON.stringify(openings, function(key,val){
+      if (key === "parent") return undefined;
+      return val;
+    });
+    window.localStorage.setItem(STORAGE_KEY, json);
+  }catch(e){ console.error("Opslaan mislukt", e); showToast("Opslaan is mislukt"); }
+}
+function loadOpenings(){
+  try{
+    var raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    var data = JSON.parse(raw);
+    data.forEach(function(o){ linkParents(o.tree, null); });
+    return data;
+  }catch(e){ console.error("Laden mislukt", e); return []; }
+}
+function linkParents(node, parent){
+  node.parent = parent;
+  (node.children || []).forEach(function(c){ linkParents(c, node); });
+}
+
+/* ---------- Tree helpers ---------- */
+function newOpeningObj(name){
+  return {
+    id: uid(),
+    name: name || "Naamloze opening",
+    trainColor: "w",
+    createdAt: Date.now(),
+    tree: { san: null, fen: START_FEN, children: [], parent: null }
+  };
+}
+function maxDepth(node){
+  if (!node.children || node.children.length === 0) return 0;
+  var m = 0;
+  node.children.forEach(function(c){ m = Math.max(m, 1 + maxDepth(c)); });
+  return m;
+}
+function nodeDepth(node){
+  var d = 0, n = node;
+  while (n.parent){ d++; n = n.parent; }
+  return d;
+}
+function nodeCount(node){
+  var c = 1;
+  (node.children||[]).forEach(function(ch){ c += nodeCount(ch); });
+  return c;
+}
+function getActiveOpening(){
+  return openings.find(function(o){ return o.id === activeOpeningId; }) || null;
+}
+
+/* ---------- PGN parse ---------- */
+function parsePGNToTree(pgnText){
+  var text = pgnText
+    .replace(/\[[^\]]*\]/g, " ")
+    .replace(/\{[^}]*\}/g, " ")
+    .replace(/\$\d+/g, " ")
+    .replace(/\d+\.(\.\.)?/g, " ")
+    .replace(/\(/g, " ( ")
+    .replace(/\)/g, " ) ");
+  var rawTokens = text.split(/\s+/).filter(Boolean);
+  var tokens = rawTokens.filter(function(t){ return !/^(1-0|0-1|1\/2-1\/2|\*)$/.test(t); });
+
+  var root = { san:null, fen: START_FEN, children: [], parent: null };
+
+  function parseSeq(pos, startNode){
+    var cur = startNode;
+    var prev = null;
+    while (pos < tokens.length){
+      var t = tokens[pos];
+      if (t === "("){
+        var res = parseSeq(pos+1, prev || startNode);
+        pos = res.pos;
+        continue;
+      }
+      if (t === ")"){
+        return { pos: pos+1, node: cur };
+      }
+      var tmp = new Chess(cur.fen);
+      var mv = tmp.move(t, { sloppy: true });
+      if (!mv){ pos++; continue; }
+      var child = null;
+      for (var i=0;i<cur.children.length;i++){ if (cur.children[i].san === mv.san){ child = cur.children[i]; break; } }
+      if (!child){
+        child = { san: mv.san, fen: tmp.fen(), children: [], parent: cur };
+        cur.children.push(child);
+      }
+      prev = cur;
+      cur = child;
+      pos++;
+    }
+    return { pos: pos, node: cur };
+  }
+  parseSeq(0, root);
+  return root;
+}
+
+/* ---------- PGN export ---------- */
+function moveNumTag(ply, forceDots){
+  var num = Math.floor(ply/2) + 1;
+  if (ply % 2 === 0) return num + ". ";
+  return forceDots ? (num + "... ") : "";
+}
+function buildMovetext(node, ply){
+  if (!node.children || node.children.length === 0) return "";
+  var main = node.children[0];
+  var parts = [];
+  parts.push(moveNumTag(ply, false) + main.san);
+  for (var i=1;i<node.children.length;i++){
+    var alt = node.children[i];
+    var inner = buildMovetext(alt, ply+1);
+    parts.push("(" + moveNumTag(ply, true) + alt.san + (inner ? " " + inner : "") + ")");
+  }
+  var rest = buildMovetext(main, ply+1);
+  if (rest) parts.push(rest);
+  return parts.join(" ");
+}
+function openingToPGN(opening){
+  var headers = '[Event "' + opening.name.replace(/"/g,"'") + '"]\n[Site "BlitzMeister"]\n[Result "*"]\n\n';
+  var body = buildMovetext(opening.tree, 0);
+  return headers + (body || "") + " *";
+}
+
+/* ================= ROUTER ================= */
+function render(){
+  clear(app);
+  renderMainScreen();
+  if (drawerOpen) renderDrawer();
+}
+function toggleDrawer(){
+  drawerOpen = !drawerOpen;
+  render();
+}
+
+/* ================= LIBRARY DRAWER ================= */
+function renderDrawer(){
+  var overlay = el("div",{class:"drawer-overlay", onclick:function(e){ if(e.target===overlay){ drawerOpen=false; render(); } }});
+  var panel = el("div",{class:"drawer-panel"});
+
+  var top = el("div", {class:"topbar"}, [
+    el("div", {class:"brand"}, [
+      el("span",{class:"pawn"},["\u265F"]),
+      el("span",{class:"brand-word"},[
+        el("span",{class:"blitz"},["Blitz"]),
+        el("span",{class:"meister"},["Meister"])
+      ])
+    ]),
+    el("button",{class:"btn btn-icon drawer-close", onclick:function(){ drawerOpen=false; render(); }},["\u2715"])
+  ]);
+  panel.appendChild(top);
+
+  var sec = el("div",{class:"section-pad"});
+  sec.appendChild(el("p",{class:"subtitle"},["Jouw persoonlijke bibliotheek met schaakopeningen."]));
+  var actions = el("div",{class:"lib-actions"},[
+    el("button",{class:"btn btn-primary btn-block", onclick: openNewOpeningModal},["\uFF0B Nieuwe opening"]),
+    el("button",{class:"btn btn-icon", onclick: openImportModal, title:"Importeer PGN"},["\u2B07"])
+  ]);
+  sec.appendChild(actions);
+
+  var list = el("div",{class:"opening-list"});
+  if (openings.length === 0){
+    list.appendChild(el("div",{class:"empty-state"},[
+      el("div",{class:"es-icon"},["\u265E"]),
+      el("div",{},["Nog geen openingen. Maak je eerste opening aan of importeer een PGN."])
+    ]));
+  } else {
+    openings.slice().sort(function(a,b){return b.createdAt-a.createdAt;}).forEach(function(o){
+      list.appendChild(renderOpeningCard(o));
     });
   }
-  document.getElementById('op-count').textContent=openings.length;
-  const filtered=activeCategory?openings.filter(o=>o.category===activeCategory):openings;
-  if(!filtered.length){el.innerHTML='<div class="empty-state">' +(openings.length?'Geen openingen in deze categorie.':'Nog geen openingen toegevoegd.<br>Voeg er een toe via het PGN-veld.')+'</div>';return;}
-  el.innerHTML='';
-  filtered.forEach(op=>{
-    const i=openings.indexOf(op);
-    const item=document.createElement('div');
-    item.className='op-item'+(activeOp===op?' active':'');
-    const badge=`<span class="op-color-badge ${op.color||'white'}">${op.color==='black'?'♚ zwart':'♔ wit'}</span>`;
-    const optLabel=op.optional?`<span style="color:var(--muted);font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"> — ${op.optional}</span>`:'';
+  sec.appendChild(list);
+  panel.appendChild(sec);
 
-    item.innerHTML=`<div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap"><div class="op-name">${opLabel(op)}</div>${optLabel}${badge}</div><div class="op-moves">${op.moves.slice(0,5).join(' ')}${op.moves.length>5?'…':''}</div></div><button class="op-del" onclick="delOp(${i},event)">✕</button>`;
-    item.addEventListener('click',()=>selOp(i));
-    el.appendChild(item);
-  });
+  overlay.appendChild(panel);
+  app.appendChild(overlay);
+  setTimeout(function(){ overlay.classList.add("open"); }, 10);
 }
-function showModal(){
-  const correct=sessionStats.c,wrong=sessionStats.w;
-  document.getElementById('modal-title').textContent=wrong===0?'Foutloos! 🔥':'Opening voltooid!';
-  document.getElementById('modal-body').textContent=`"${activeOp?opLabel(activeOp):''}" voltooid — ${correct} goed, ${wrong} fout.`;
-  const notesEl=document.getElementById('modal-notes');
-  const notes=activeOp&&activeOp.notes;
-  if(notes){notesEl.textContent='📝 '+notes;notesEl.style.display='block';}
-  else{notesEl.style.display='none';}
-  document.getElementById('modal').classList.add('open');
+function renderOpeningCard(o){
+  var count = nodeCount(o.tree) - 1;
+  var card = el("div",{class:"opening-card", onclick:function(){ drawerOpen=false; openTrainer(o.id); }},[
+    el("div",{class:"oc-icon"},["\u265E"]),
+    el("div",{class:"oc-main"},[
+      el("div",{class:"oc-name"},[o.name]),
+      el("div",{class:"oc-meta"},[
+        el("span",{class:"badge" + (o.trainColor==="b"?" black":"")},[o.trainColor==="b" ? "\u265A Zwart" : "\u2654 Wit"]),
+        el("span",{},[count + " zetten"])
+      ])
+    ]),
+    el("button",{class:"oc-menu-btn", onclick:function(ev){ ev.stopPropagation(); openCardMenu(o); }},["\u22EF"])
+  ]);
+  return card;
 }
-function closeModal(){document.getElementById('modal').classList.remove('open');}
-document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
-
-// ══════════════════════════════════════════════════
-//  OPENINGS MANAGEMENT
-// ══════════════════════════════════════════════════
-function selOp(i){
-  activeOp=openings[i];
-  document.getElementById('status-name').textContent=opLabel(activeOp);
-  // Auto-set player color from opening and flip board accordingly
-  const c=activeOp.color||'white';
-  playerColor=c;
-  flipped=(c==='black');
-  document.getElementById('cbtn-w').className='color-btn'+(c==='white'?' w-active':'');
-  document.getElementById('cbtn-b').className='color-btn'+(c==='black'?' b-active':'');
-  resetBoard();
-  updOpList();
+function openCardMenu(o){
+  var overlay = el("div",{class:"modal-overlay", onclick:function(e){ if(e.target===overlay) overlay.remove(); }});
+  var sheet = el("div",{class:"modal-sheet"},[
+    el("div",{class:"modal-title"},[o.name]),
+    el("button",{class:"btn btn-block", style:"margin-bottom:10px;", onclick:function(){ overlay.remove(); openRenameModal(o); }},["\u270F\uFE0F Hernoemen"]),
+    el("button",{class:"btn btn-block", style:"margin-bottom:10px;", onclick:function(){ overlay.remove(); openExportModal(o); }},["\u2B06 Exporteer PGN"]),
+    el("button",{class:"btn btn-block btn-danger", onclick:function(){
+      overlay.remove();
+      confirmDialog("Opening verwijderen?", "\u201C" + o.name + "\u201D wordt definitief verwijderd.", function(){
+        openings = openings.filter(function(x){ return x.id !== o.id; });
+        saveOpenings();
+        if (activeOpeningId === o.id){
+          activeOpeningId = null;
+          currentNode = null;
+          chess.reset();
+        }
+        render();
+      });
+    }},["\uD83D\uDDD1 Verwijderen"])
+  ]);
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
 }
-
-function delOp(i,e){
-  e.stopPropagation();
-  if(activeOp===openings[i]){activeOp=null;resetBoard();}
-  openings.splice(i,1);saveOp();updOpList();
-}
-
-function addOp(){
-  const pgn=document.getElementById('pgn-input').value.trim();
-  const nm=document.getElementById('pgn-name').value.trim();
-  const cat=document.getElementById('pgn-category').value.trim();
-  if(!pgn)return alert('Voer een PGN in.');
-  if(!cat)return alert('Vul een schaakopening in.');
-  if(!nm)return alert('Vul een variatie in.');
-  const p=parsePGN(pgn);
-  if(!p.moves.length)return alert('Geen geldige zetten gevonden.');
-  const fromVal=parseInt(document.getElementById('pgn-from').value)||1;
-  const toVal=parseInt(document.getElementById('pgn-to').value)||0;
-  const startHalf=Math.max(1,fromVal)-1;
-  const endHalf=toVal>0?Math.min(toVal,p.moves.length):p.moves.length;
-  const prefixMoves=p.moves.slice(0,startHalf);
-  const exerciseMoves=p.moves.slice(startHalf,endHalf);
-  if(!exerciseMoves.length)return alert('Geen zetten in het opgegeven bereik.');
-  const opt=document.getElementById('pgn-optional').value.trim();
-  const notes=document.getElementById('pgn-notes').value.trim();
-  openings.push({name:nm,moves:exerciseMoves,prefixMoves,pgn,color:pgnColor,category:cat,optional:opt||undefined,notes:notes||undefined});
-  saveOp();updOpList();
-  document.getElementById('pgn-input').value='';
-  document.getElementById('pgn-name').value='';
-  document.getElementById('pgn-optional').value='';
-  document.getElementById('pgn-notes').value='';
-  document.getElementById('pgn-from').value='';
-  document.getElementById('pgn-to').value='';
-  document.getElementById('pgn-category').value='';
-  selOp(openings.length-1);
+function confirmDialog(title, text, onConfirm){
+  var overlay = el("div",{class:"modal-overlay center"});
+  var sheet = el("div",{class:"modal-sheet"},[
+    el("div",{class:"modal-title"},[title]),
+    el("p",{class:"info-text"},[text]),
+    el("div",{class:"modal-actions"},[
+      el("button",{class:"btn", style:"flex:1;", onclick:function(){ overlay.remove(); }},["Annuleren"]),
+      el("button",{class:"btn btn-danger", style:"flex:1;", onclick:function(){ overlay.remove(); onConfirm(); }},["Verwijderen"])
+    ])
+  ]);
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
 }
 
-function pickRandom(){
-  const pool=openings.filter((op,i)=>op!==activeOp&&(!activeCategory||op.category===activeCategory));
-  if(!pool.length){
-    // fall back: include activeOp or ignore category
-    const fallback=openings.filter(op=>!activeCategory||op.category===activeCategory);
-    if(!fallback.length)return alert('Geen openingen in deze categorie!');
-    selOp(openings.indexOf(fallback[Math.floor(Math.random()*fallback.length)]));
+/* ----- New opening modal ----- */
+function openNewOpeningModal(){
+  var nameInput;
+  var selectedColor = "w";
+  var overlay = el("div",{class:"modal-overlay"});
+  var sheet = el("div",{class:"modal-sheet"},[
+    el("div",{class:"modal-title"},["Nieuwe opening"]),
+    el("div",{class:"field-label"},["Naam"]),
+  ]);
+  nameInput = el("input",{class:"text-input", type:"text", placeholder:"bv. Italiaanse partij", autofocus:"true"});
+  sheet.appendChild(nameInput);
+  sheet.appendChild(el("div",{class:"field-label"},["Jij speelt"]));
+  var whiteBtn = el("button",{class:"btn selected"},["\u2654 Wit"]);
+  var blackBtn = el("button",{class:"btn"},["\u265A Zwart"]);
+  function updateColorBtns(){
+    whiteBtn.classList.toggle("selected", selectedColor === "w");
+    blackBtn.classList.toggle("selected", selectedColor === "b");
+  }
+  whiteBtn.addEventListener("click", function(){ selectedColor = "w"; updateColorBtns(); });
+  blackBtn.addEventListener("click", function(){ selectedColor = "b"; updateColorBtns(); });
+  sheet.appendChild(el("div",{class:"color-pick"},[whiteBtn, blackBtn]));
+  sheet.appendChild(el("div",{class:"modal-actions"},[
+    el("button",{class:"btn", style:"flex:1;", onclick:function(){ overlay.remove(); }},["Annuleren"]),
+    el("button",{class:"btn btn-primary", style:"flex:1;", onclick:function(){
+      var name = nameInput.value.trim() || "Naamloze opening";
+      var o = newOpeningObj(name);
+      o.trainColor = selectedColor;
+      openings.push(o);
+      saveOpenings();
+      overlay.remove();
+      drawerOpen = false;
+      openTrainer(o.id, "editor");
+    }},["Aanmaken"])
+  ]));
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+  setTimeout(function(){ nameInput.focus(); }, 50);
+}
+function openRenameModal(o){
+  var overlay = el("div",{class:"modal-overlay"});
+  var input = el("input",{class:"text-input", type:"text", value:o.name});
+  var sheet = el("div",{class:"modal-sheet"},[
+    el("div",{class:"modal-title"},["Hernoemen"]),
+    input,
+    el("div",{class:"modal-actions"},[
+      el("button",{class:"btn", style:"flex:1;", onclick:function(){ overlay.remove(); }},["Annuleren"]),
+      el("button",{class:"btn btn-primary", style:"flex:1;", onclick:function(){
+        o.name = input.value.trim() || o.name;
+        saveOpenings(); overlay.remove(); render();
+      }},["Opslaan"])
+    ])
+  ]);
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
+
+/* ----- Import modal (new opening from PGN) ----- */
+function openImportModal(){
+  var overlay = el("div",{class:"modal-overlay"});
+  var nameInput = el("input",{class:"text-input", type:"text", placeholder:"Naam voor deze opening"});
+  var pgnInput = el("textarea",{class:"text-input", placeholder:"Plak hier je PGN (mag varianten met haakjes bevatten)\u2026"});
+  var sheet = el("div",{class:"modal-sheet"},[
+    el("div",{class:"modal-title"},["Importeer PGN"]),
+    el("div",{class:"field-label"},["Naam"]), nameInput,
+    el("div",{class:"field-label"},["PGN"]), pgnInput,
+    el("div",{class:"modal-actions"},[
+      el("button",{class:"btn", style:"flex:1;", onclick:function(){ overlay.remove(); }},["Annuleren"]),
+      el("button",{class:"btn btn-primary", style:"flex:1;", onclick:function(){
+        var txt = pgnInput.value.trim();
+        if (!txt){ showToast("Plak eerst een PGN"); return; }
+        var tree;
+        try{ tree = parsePGNToTree(txt); }catch(e){ showToast("Kon PGN niet lezen"); return; }
+        if (!tree.children || tree.children.length === 0){ showToast("Geen geldige zetten gevonden"); return; }
+        var o = newOpeningObj(nameInput.value.trim() || "Ge\u00efmporteerde opening");
+        o.tree = tree;
+        openings.push(o);
+        saveOpenings();
+        overlay.remove();
+        drawerOpen = false;
+        openTrainer(o.id, "practice");
+      }},["Importeren"])
+    ])
+  ]);
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
+
+/* ----- Export modal ----- */
+function openExportModal(o){
+  var pgn = openingToPGN(o);
+  var overlay = el("div",{class:"modal-overlay"});
+  var ta = el("textarea",{class:"text-input", readonly:"true"});
+  ta.value = pgn;
+  var sheet = el("div",{class:"modal-sheet"},[
+    el("div",{class:"modal-title"},["PGN \u2014 " + o.name]),
+    ta,
+    el("div",{class:"modal-actions"},[
+      el("button",{class:"btn", style:"flex:1;", onclick:function(){ overlay.remove(); }},["Sluiten"]),
+      el("button",{class:"btn btn-primary", style:"flex:1;", onclick:function(){
+        ta.select(); ta.setSelectionRange(0,999999);
+        try{ document.execCommand("copy"); }catch(e){}
+        if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(pgn).catch(function(){}); }
+        showToast("PGN gekopieerd");
+      }},["Kopieer"])
+    ])
+  ]);
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
+
+/* ================= TRAINER VIEW ================= */
+function openTrainer(id, startMode){
+  activeOpeningId = id;
+  var o = getActiveOpening();
+  o.lastOpenedAt = Date.now();
+  saveOpenings();
+  trainColor = o.trainColor || "w";
+  mode = startMode || (nodeCount(o.tree) > 1 ? "practice" : "editor");
+  currentNode = o.tree;
+  chess.load(o.tree.fen);
+  boardFlipped = (trainColor === "b");
+  stats = { correct:0, incorrect:0 };
+  movesOpen = false;
+  sessionEnded = false;
+  render();
+  if (mode === "practice") maybeAutoPlayOpponent();
+}
+function setMode(m){
+  mode = m;
+  var o = getActiveOpening();
+  currentNode = o.tree;
+  chess.load(o.tree.fen);
+  sessionEnded = false;
+  if (m === "practice"){
+    stats = { correct:0, incorrect:0 };
+  }
+  render();
+  if (m === "practice") maybeAutoPlayOpponent();
+}
+function setTrainColor(c){
+  trainColor = c;
+  var o = getActiveOpening();
+  o.trainColor = c;
+  saveOpenings();
+  currentNode = o.tree;
+  chess.load(o.tree.fen);
+  boardFlipped = (c === "b");
+  stats = { correct:0, incorrect:0 };
+  sessionEnded = false;
+  render();
+  maybeAutoPlayOpponent();
+}
+function resetSession(){
+  var o = getActiveOpening();
+  currentNode = o.tree;
+  chess.load(o.tree.fen);
+  sessionEnded = false;
+  if (mode === "practice"){ stats = { correct:0, incorrect:0 }; boardFlipped = (trainColor === "b"); }
+  lastMove = null;
+  render();
+  if (mode === "practice") maybeAutoPlayOpponent();
+}
+
+function renderMainScreen(){
+  var o = getActiveOpening();
+
+  var titleEl = o
+    ? el("div",{class:"trainer-title", onclick:function(){ openRenameModal(o); }},[o.name])
+    : el("div",{class:"trainer-title"},["BlitzMeister"]);
+  var top = el("div",{class:"trainer-top"},[
+    el("button",{class:"btn btn-icon", onclick: toggleDrawer, title:"Menu"},["\u2630"]),
+    titleEl,
+    o ? el("button",{class:"btn btn-icon", onclick:function(){ boardFlipped = !boardFlipped; render(); }, title:"Bord draaien"},["\u21C5"]) : null,
+    o ? el("button",{class:"btn btn-icon", onclick:function(){ openExportModal(o); }, title:"PGN"},["\u2B06"]) : null
+  ]);
+  app.appendChild(top);
+
+  if (!o){
+    app.appendChild(el("div",{class:"info-card"},[
+      el("div",{class:"info-title"},["Welkom bij BlitzMeister"]),
+      el("p",{class:"info-text"},["Je hebt nog geen opening geopend. Maak een nieuwe opening aan, importeer een PGN, of kies er een via het menu linksboven."]),
+      el("button",{class:"btn btn-primary btn-block", onclick: openNewOpeningModal},["\uFF0B Nieuwe opening"])
+    ]));
+    app.appendChild(renderBoardWrap());
     return;
   }
-  selOp(openings.indexOf(pool[Math.floor(Math.random()*pool.length)]));
+
+  var toggle = el("div",{class:"mode-toggle"},[
+    el("button",{class: mode==="practice" ? "active":"", onclick:function(){ setMode("practice"); }},["\uD83C\uDFAF Oefenen"]),
+    el("button",{class: mode==="editor" ? "active":"", onclick:function(){ setMode("editor"); }},["\u270F\uFE0F Bewerken"])
+  ]);
+  app.appendChild(toggle);
+
+  app.appendChild(renderInfoCard(o));
+
+  if (mode === "practice"){
+    var pick = el("div",{class:"section-pad"},[
+      el("div",{class:"color-pick"},[
+        el("button",{class:"btn" + (trainColor==="w" ? " selected":""), onclick:function(){ setTrainColor("w"); }},["\u2654 Wit"]),
+        el("button",{class:"btn" + (trainColor==="b" ? " selected":""), onclick:function(){ setTrainColor("b"); }},["\u265A Zwart"])
+      ])
+    ]);
+    app.appendChild(pick);
+  }
+
+  app.appendChild(renderBoardWrap());
+
+  if (sessionEnded){
+    app.appendChild(el("div",{class:"end-banner"},["\uD83C\uDF89 Einde van deze variant! Goed geoefend."]));
+  }
+
+  if (mode === "practice"){
+    app.appendChild(el("div",{class:"actions-row"},[
+      el("button",{class:"btn", style:"flex:1;", onclick: showHint},["\uD83D\uDCA1 Hint"]),
+      el("button",{class:"btn", style:"flex:1;", onclick: skipMove},["\u23ED Sla over"])
+    ]));
+    app.appendChild(el("div",{class:"stats-row"},[
+      el("div",{class:"stat-box correct"},[el("div",{class:"num"},[String(stats.correct)]), el("div",{class:"lbl"},["Goed"])]),
+      el("div",{class:"stat-box incorrect"},[el("div",{class:"num"},[String(stats.incorrect)]), el("div",{class:"lbl"},["Fout"])])
+    ]));
+  } else {
+    app.appendChild(el("div",{class:"actions-row"},[
+      el("button",{class:"btn", style:"flex:1;", onclick: editorStepBack, disabled: currentNode===o.tree},["\u2190 Terug"]),
+      el("button",{class:"btn btn-danger", style:"flex:1;", onclick: editorDeleteHere, disabled: currentNode===o.tree},["\uD83D\uDDD1 Verwijder deze zet"])
+    ]));
+  }
+
+  app.appendChild(el("div",{class:"actions-row"},[
+    el("button",{class:"btn btn-block", onclick: resetSession},["\u21BA Opnieuw"])
+  ]));
+
+  app.appendChild(renderMovesSection(o));
 }
 
-function setPgnColor(c){
-  pgnColor=c;
-  document.getElementById('cp-white').className='cp-opt'+(c==='white'?' active':'');
-  document.getElementById('cp-black').className='cp-opt'+(c==='black'?' active':'');
+function renderInfoCard(o){
+  if (mode === "editor"){
+    return el("div",{class:"info-card"},[
+      el("div",{class:"info-title"},["Bewerkmodus"]),
+      el("p",{class:"info-text"},["Sleep de stukken om zetten toe te voegen aan deze opening. Bestaat de zet al? Dan spring je automatisch naar die variant. Speel een ander antwoord op hetzelfde punt om een nieuwe variant te maken."])
+    ]);
+  }
+  var depth = nodeDepth(currentNode);
+  var total = maxDepth(o.tree) + nodeDepth(o.tree === currentNode ? currentNode : findPathRoot(o, currentNode));
+  var longest = maxDepth(o.tree);
+  var pct = longest === 0 ? 0 : Math.min(100, Math.round((depth/longest)*100));
+  var card = el("div",{class:"info-card"},[
+    el("div",{class:"info-title"},["Oefenmodus \u2014 " + (trainColor==="w" ? "jij speelt Wit" : "jij speelt Zwart")]),
+    el("p",{class:"info-text"},["Speel de zetten die bij deze opening horen. De tegenstander speelt automatisch. Weet je het niet zeker? Gebruik een hint."]),
+    el("div",{class:"progressbar"},[el("div",{style:"width:"+pct+"%"})]),
+    el("div",{class:"progress-label"},[depth + " / " + longest + " zetten"])
+  ]);
+  return card;
+}
+function findPathRoot(o, node){ return o.tree; }
+
+/* ---------- Board rendering ---------- */
+var dragCtx = null;
+
+function renderBoardWrap(){
+  var wrap = el("div",{class:"board-wrap"});
+  var board = el("div",{class:"board", id:"board"});
+  wrap.appendChild(board);
+  buildBoardSquares(board);
+  return wrap;
+}
+function buildBoardSquares(board){
+  clear(board);
+  var pos = chess.board(); // 8 rows, rank8..rank1, files a..h
+  var rows = [];
+  for (var r=0;r<8;r++) rows.push(r);
+  var cols = [];
+  for (var c=0;c<8;c++) cols.push(c);
+  if (boardFlipped){ rows.reverse(); cols.reverse(); }
+
+  rows.forEach(function(r){
+    cols.forEach(function(c){
+      var fileIdx = c;
+      var rankNum = 8 - r;
+      var squareName = FILES[fileIdx] + rankNum;
+      var light = (fileIdx + rankNum) % 2 === 0;
+      var sqEl = el("div",{class:"square " + (light ? "light":"dark"), "data-square": squareName});
+      if (lastMove && (lastMove.from === squareName)) sqEl.classList.add("hi-from");
+      if (lastMove && (lastMove.to === squareName)) sqEl.classList.add("hi-to");
+      // coords
+      if (c === (boardFlipped?7:0)){
+        sqEl.appendChild(el("span",{class:"coord"},[String(rankNum)]));
+      }
+      if (r === (boardFlipped?0:7)){
+        sqEl.appendChild(el("span",{class:"coord rank"},[FILES[fileIdx]]));
+      }
+      var piece = pos[r][c];
+      if (piece){
+        var pieceEl = el("span",{class:"piece " + (piece.color==="w"?"white":"black"), html: pieceSVG(piece.type, piece.color)});
+        pieceEl.setAttribute("data-square", squareName);
+        attachDragHandlers(pieceEl, squareName);
+        sqEl.appendChild(pieceEl);
+      }
+      board.appendChild(sqEl);
+    });
+  });
+}
+function rerenderBoardOnly(){
+  var board = document.getElementById("board");
+  if (board) buildBoardSquares(board);
 }
 
-function exportOp(){
-  if(!openings.length)return alert('Geen openingen om te exporteren.');
-  const blob=new Blob([JSON.stringify(openings,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='Openingen.json';a.click();URL.revokeObjectURL(url);
-}
-function importOp(input){
-  const f=input.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const d=JSON.parse(e.target.result);
-      if(!Array.isArray(d))throw new Error('Ongeldig formaat');
-      let add=0,skip=0;
-      d.forEach(op=>{if(!op.name||!Array.isArray(op.moves))return skip++;if(openings.some(o=>o.name===op.name))return skip++;openings.push(op);add++;});
-      saveOp();updOpList();
-      alert(`✓ ${add} opening${add!==1?'en':''} geïmporteerd${skip?`, ${skip} overgeslagen`:'.'}`);
-    }catch(err){alert('Importfout: '+err.message);}
-    input.value='';
-  };
-  r.readAsText(f);
+function isDraggable(square){
+  if (!activeOpeningId) return false;
+  if (sessionEnded) return false;
+  var piece = chess.get(square);
+  if (!piece) return false;
+  if (mode === "editor") return piece.color === chess.turn();
+  if (chess.turn() !== trainColor) return false;
+  return piece.color === trainColor;
 }
 
-// ══════════════════════════════════════════════════
-//  BOARD CONTROL
-// ══════════════════════════════════════════════════
-function safeTimeout(fn,ms){clearTimeout(pendingTimer);pendingTimer=setTimeout(fn,ms);}
-function clearPending(){clearTimeout(pendingTimer);pendingTimer=null;}
-
-function resetToPrefix(){
-  engine.reset();
-  if(activeOp&&activeOp.prefixMoves&&activeOp.prefixMoves.length){
-    const tmp=new Engine();
-    for(const san of activeOp.prefixMoves){
-      const r=tmp.parseSAN(san);if(!r)break;
-      tmp.move(r[0],r[1],r[2]||'q');
+function attachDragHandlers(pieceEl, square){
+  pieceEl.addEventListener("pointerdown", function(ev){
+    if (!isDraggable(square)) return;
+    ev.preventDefault();
+    var legal = chess.moves({ square: square, verbose:true });
+    if (legal.length === 0) return;
+    var boardEl = document.getElementById("board");
+    var rect = pieceEl.getBoundingClientRect();
+    dragCtx = {
+      from: square,
+      pieceEl: pieceEl,
+      legal: legal,
+      startX: ev.clientX,
+      startY: ev.clientY,
+      origLeft: rect.left + rect.width/2,
+      origTop: rect.top + rect.height/2
+    };
+    pieceEl.setPointerCapture(ev.pointerId);
+    pieceEl.classList.add("dragging");
+    pieceEl.style.left = dragCtx.origLeft + "px";
+    pieceEl.style.top = dragCtx.origTop + "px";
+    highlightLegalTargets(legal, square);
+  });
+  pieceEl.addEventListener("pointermove", function(ev){
+    if (!dragCtx || dragCtx.pieceEl !== pieceEl) return;
+    ev.preventDefault();
+    pieceEl.style.left = ev.clientX + "px";
+    pieceEl.style.top = ev.clientY + "px";
+  });
+  pieceEl.addEventListener("pointerup", function(ev){
+    if (!dragCtx || dragCtx.pieceEl !== pieceEl) return;
+    ev.preventDefault();
+    var targetEl = document.elementFromPoint(ev.clientX, ev.clientY);
+    var sqEl = targetEl ? targetEl.closest(".square") : null;
+    var toSquare = sqEl ? sqEl.getAttribute("data-square") : null;
+    var legal = dragCtx.legal;
+    var from = dragCtx.from;
+    clearHighlights();
+    dragCtx = null;
+    if (toSquare){
+      handleAttemptedMove(from, toSquare, legal);
+    } else {
+      rerenderBoardOnly();
     }
-    engine.b=[...tmp.b];engine.turn=tmp.turn;engine.castle={...tmp.castle};engine.ep=tmp.ep;engine.last=null;
+  });
+  pieceEl.addEventListener("pointercancel", function(){
+    dragCtx = null; clearHighlights(); rerenderBoardOnly();
+  });
+}
+function highlightLegalTargets(legal, from){
+  var board = document.getElementById("board");
+  legal.forEach(function(m){
+    var sqEl = board.querySelector('.square[data-square="'+m.to+'"]');
+    if (!sqEl) return;
+    var dot = el("div",{class: m.flags.indexOf("c")>=0 || m.flags.indexOf("e")>=0 ? "dot capture" : "dot"});
+    sqEl.appendChild(dot);
+  });
+}
+function clearHighlights(){
+  document.querySelectorAll(".dot").forEach(function(d){ d.remove(); });
+}
+
+function handleAttemptedMove(from, to, legal){
+  var matches = legal.filter(function(m){ return m.to === to; });
+  if (matches.length === 0){ rerenderBoardOnly(); return; }
+  if (matches[0].flags.indexOf("p") >= 0){
+    askPromotion(chess.turn()).then(function(piece){
+      finalizeMove(from, to, piece);
+    });
+  } else {
+    finalizeMove(from, to, null);
   }
 }
-
-function resetBoard(){
-  clearPending();
-  reviewIdx=null;
-  moveIdx=0;parsed=[];cancelDrag();
-  resetSessionStats();
-  resetToPrefix();
-  if(activeOp){
-    const tmp=new Engine();
-    tmp.b=[...engine.b];tmp.turn=engine.turn;tmp.castle={...engine.castle};tmp.ep=engine.ep;
-    for(const san of activeOp.moves){
-      const r=tmp.parseSAN(san);if(!r)break;
-      const[from,to,pr]=r;parsed.push({from,to,san,promo:pr});tmp.move(from,to,pr||'q');
-    }
-    document.getElementById('status-name').textContent=opLabel(activeOp);
-    setMsg('Jij speelt als '+(playerColor==='white'?'wit ♔':'zwart ♚')+'. Maak je zet!','');
-    // Trigger oppMove if the opponent is to move at the start of this exercise
-    const startTurn=engine.turn==='w'?'white':'black';
-    if(startTurn!==playerColor&&parsed.length)safeTimeout(oppMove,500);
-  }else{
-    document.getElementById('status-name').textContent='— geen opening geselecteerd —';
-    setMsg('Selecteer een opening of gebruik de willekeurige knop.','');
-  }
-  updProgress();updHistory();updReviewNav();renderBoard();
+function finalizeMove(from, to, promotion){
+  var moveResult = chess.move({ from: from, to: to, promotion: promotion || "q" });
+  if (!moveResult){ rerenderBoardOnly(); return; }
+  lastMove = { from: from, to: to };
+  if (mode === "editor") processEditorMove(moveResult);
+  else processPracticeMove(moveResult, to);
 }
 
-function setColor(c){
-  playerColor=c;flipped=(c==='black');
-  document.getElementById('cbtn-w').className='color-btn'+(c==='white'?' w-active':'');
-  document.getElementById('cbtn-b').className='color-btn'+(c==='black'?' b-active':'');
-  if(activeOp)resetBoard();else renderBoard();
-}
-
-function showHint(){
-  if(!activeOp||moveIdx>=parsed.length)return;
-  const m=parsed[moveIdx];
-  if((engine.turn==='w'?'white':'black')!==playerColor)return;
-  clearHL();showDots(m.from,[m.to]);setMsg('💡 Hint: '+m.san,'');
-}
-
-function skipMove(){
-  if(!activeOp||moveIdx>=parsed.length)return;
-  if((engine.turn==='w'?'white':'black')!==playerColor)return;
-  const m=parsed[moveIdx];
-  engine.move(m.from,m.to,m.promo||'q');moveIdx++;
-  setMsg('Overgeslagen: '+m.san,'');renderBoard();updHistory();updProgress();
-  if(moveIdx>=parsed.length){safeTimeout(showModal,400);return;}
-  if((engine.turn==='w'?'white':'black')!==playerColor)safeTimeout(oppMove,600);
-}
-
-// ══════════════════════════════════════════════════
-//  EVAL BAR — chess-api.com WebSocket
-// ══════════════════════════════════════════════════
-
-function evalBarShow(visible){
-  document.getElementById('eval-bar-wrap').classList.toggle('visible',visible);
-}
-
-function engineToFen(){
-  const eng=editEngine;
-  const rows=[];
-  for(let r=0;r<8;r++){
-    let row='',empty=0;
-    for(let f=0;f<8;f++){
-      const p=eng.b[s2i(f,r)];
-      if(p){if(empty){row+=empty;empty=0;}row+=p;}else empty++;
-    }
-    if(empty)row+=empty;
-    rows.push(row);
-  }
-  const pos=rows.join('/');
-  const turn=eng.turn;
-  let castle='';
-  if(eng.castle.wK)castle+='K';if(eng.castle.wQ)castle+='Q';
-  if(eng.castle.bK)castle+='k';if(eng.castle.bQ)castle+='q';
-  if(!castle)castle='-';
-  const ep=eng.ep!==null?i2alg(eng.ep):'-';
-  return `${pos} ${turn} ${castle} ${ep} 0 1`;
-}
-
-function evalRequest(fen,retries){
-  if(!editMode||!editEngine)return;
-  if(fen===undefined){
-    document.getElementById('eval-spinner').classList.add('active');
-    clearArrow();
-    fen=engineToFen();
-    retries=0;
-  }
-  fetch('https://chess-api.com/v1',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({fen,depth:12})
-  })
-  .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(d=>{
-    if(!d.from||!d.to){
-      // Ongeldige response, opnieuw proberen
-      if(retries<4)setTimeout(()=>evalRequest(fen,retries+1),300);
-      return;
-    }
-    updEvalBar(d,fen);
-  })
-  .catch(()=>{
-    if(retries<4)setTimeout(()=>evalRequest(fen,retries+1),300);
-    else document.getElementById('eval-spinner').classList.remove('active');
+function askPromotion(color){
+  return new Promise(function(resolve){
+    var overlay = el("div",{class:"modal-overlay center"});
+    var opts = ["q","r","b","n"];
+    var choices = el("div",{class:"promo-choices"});
+    opts.forEach(function(p){
+      choices.appendChild(el("button",{class:"piece " + (color==="w"?"white":"black"), html: pieceSVG(p, color), onclick:function(){ overlay.remove(); resolve(p); }}));
+    });
+    var sheet = el("div",{class:"modal-sheet"},[
+      el("div",{class:"modal-title"},["Promoveer naar\u2026"]),
+      choices
+    ]);
+    overlay.appendChild(sheet);
+    document.body.appendChild(overlay);
   });
 }
 
-function evalConnect(){
-  evalRequest();
-}
-
-function updEvalBar(d,fen){
-  document.getElementById('eval-spinner').classList.remove('active');
-  lastEvalData=d;
-  if(d.from&&d.to){
-    lastBestMove={from:d.from,to:d.to};
-  }else if(d.move&&d.move.length>=4){
-    lastBestMove={from:d.move.slice(0,2),to:d.move.slice(2,4)};
+/* ---------- Editor logic ---------- */
+function processEditorMove(moveResult){
+  var child = null;
+  for (var i=0;i<currentNode.children.length;i++){
+    if (currentNode.children[i].san === moveResult.san){ child = currentNode.children[i]; break; }
   }
-  renderEvalBar();
-  // Pijl pas tekenen vanaf zet 3 (index 2)
-  if(showArrow&&lastBestMove&&editMoves.length>=2)drawArrow(lastBestMove.from,lastBestMove.to);
-}
-
-function renderEvalBar(){
-  if(!lastEvalData)return;
-  const d=lastEvalData;
-  const lbl=document.getElementById('eval-label');
-  const fill=document.getElementById('eval-bar-fill');
-  const bar=document.getElementById('eval-bar');
-  let winPct=50;
-  if(d.mate!=null&&d.mate!==null){
-    winPct=d.mate>0?99:1;
-    lbl.textContent=d.mate>0?'M'+d.mate:'-M'+Math.abs(d.mate);
-  }else{
-    const ev=parseFloat(d.eval)||0;
-    winPct=typeof d.winChance==='number'?d.winChance:(50+50*(2/(1+Math.exp(-0.00368208*(ev*100)))-1));
-    const sign=ev>=0?'+':'';
-    lbl.textContent=sign+ev.toFixed(2);
+  if (!child){
+    child = { san: moveResult.san, fen: chess.fen(), children: [], parent: currentNode };
+    currentNode.children.push(child);
   }
-  const pct=Math.max(2,Math.min(98,winPct));
-  if(flipped){
-    bar.style.background='#fff';
-    fill.style.background='#1a1a1a';
-    fill.style.bottom='0';
-    fill.style.top='auto';
-    fill.style.height=(100-pct)+'%';
-  }else{
-    bar.style.background='#1a1a1a';
-    fill.style.background='#fff';
-    fill.style.bottom='0';
-    fill.style.top='auto';
-    fill.style.height=pct+'%';
+  currentNode = child;
+  saveOpenings();
+  render();
+}
+function editorStepBack(){
+  if (!currentNode.parent) return;
+  currentNode = currentNode.parent;
+  chess.load(currentNode.fen);
+  lastMove = null;
+  render();
+}
+function editorDeleteHere(){
+  if (!currentNode.parent) return;
+  var parent = currentNode.parent;
+  var toRemove = currentNode;
+  parent.children = parent.children.filter(function(c){ return c !== toRemove; });
+  currentNode = parent;
+  chess.load(currentNode.fen);
+  lastMove = null;
+  saveOpenings();
+  render();
+}
+
+/* ---------- Practice logic ---------- */
+function processPracticeMove(moveResult, to){
+  var match = null;
+  for (var i=0;i<currentNode.children.length;i++){
+    if (currentNode.children[i].san === moveResult.san){ match = currentNode.children[i]; break; }
   }
-}
-
-let editMoves_REMOVED=null; // moved to APP STATE
-
-function alg2colrow(sq){
-  // sq like "e4" → {col:4, row:3} (0-based, col=file 0-7, row=rank 0-7 from top)
-  const col='abcdefgh'.indexOf(sq[0]);
-  const row=8-parseInt(sq[1]);
-  return{col,row};
-}
-
-function drawArrow(from,to){
-  const line=document.getElementById('arrow-line');
-  if(!from||!to||!showArrow){line.setAttribute('visibility','hidden');return;}
-  let f=alg2colrow(from),t=alg2colrow(to);
-  if(flipped){f={col:7-f.col,row:7-f.row};t={col:7-t.col,row:7-t.row};}
-  const cell=100;
-  const cx=c=>c*cell+cell/2, cy=r=>r*cell+cell/2;
-  const dx=cx(t.col)-cx(f.col), dy=cy(t.row)-cy(f.row);
-  const len=Math.sqrt(dx*dx+dy*dy);
-  if(len===0){line.setAttribute('visibility','hidden');return;}
-  // Start iets na het midden van het beginvakje
-  const startOff=18;
-  const x1=cx(f.col)+dx/len*startOff, y1=cy(f.row)+dy/len*startOff;
-  // Stop iets voor het midden van het eindvakje (ruimte voor pijlpunt)
-  const endOff=28;
-  const x2=cx(t.col)-dx/len*endOff, y2=cy(t.row)-dy/len*endOff;
-  line.setAttribute('x1',x1);
-  line.setAttribute('y1',y1);
-  line.setAttribute('x2',x2);
-  line.setAttribute('y2',y2);
-  line.setAttribute('visibility','visible');
-}
-
-function clearArrow(){
-  document.getElementById('arrow-line').setAttribute('visibility','hidden');
-}
-
-function enterEditMode(){
-  editMode=true;
-  editEngine=new Engine();
-  editMoves=[];
-  flipped=false;
-  // Change board colors to editor palette
-  document.documentElement.style.setProperty('--light-sq','#e8bfa8');
-  document.documentElement.style.setProperty('--dark-sq','#C15F3C');
-  // Change accent/button colors to editor palette
-  document.documentElement.style.setProperty('--accent','#C15F3C');
-  document.documentElement.style.setProperty('--accent-dim','rgba(193,95,60,.12)');
-  document.documentElement.style.setProperty('--accent-btn','#C15F3C');
-  document.documentElement.style.setProperty('--accent-btn-hover','#a34e30');
-  // Hide panels not needed in editor mode
-  document.getElementById('el-status').style.display='none';
-  document.querySelector('.stats-row').style.display='none';
-  document.getElementById('panel-op').style.display='none';
-  document.querySelector('.action-row').style.display='none';
-  // Render fresh board using editEngine
-  renderEditBoard();
-  updEditDisplay();
-  document.getElementById('edit-mode-bar').classList.add('visible');
-  document.getElementById('edit-banner').classList.add('visible');
-  document.getElementById('btn-edit').classList.add('btn-edit-active');
-  document.getElementById('btn-edit').textContent='✕ Stop editor mode';
-  // Disable normal controls
-  document.getElementById('btn-hint').disabled=true;
-  document.getElementById('btn-skip').disabled=true;
-  document.getElementById('btn-random').disabled=true;
-  evalBarShow(true);
-  evalConnect();
-  evalRequest();
-  // Pijl altijd aan bij openen editor mode
-  showArrow=true;
-  document.getElementById('edit-arrow-toggle').classList.add('btn-edit-active');
-  // Scroll to top so board is visible
-  document.getElementById('edit-mode-bar').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-
-function exitEditMode(doReset=true){
-  editMode=false;
-  editEngine=null;
-  if(doReset){
-    // Restore original green board colors
-    document.documentElement.style.setProperty('--light-sq','#d8e0c8');
-    document.documentElement.style.setProperty('--dark-sq','#7a8f6a');
-    // Restore original accent/button colors
-    document.documentElement.style.setProperty('--accent','#4a6b3a');
-    document.documentElement.style.setProperty('--accent-dim','rgba(74,107,58,.12)');
-    document.documentElement.style.setProperty('--accent-btn','#5a7a48');
-    document.documentElement.style.setProperty('--accent-btn-hover','#4a6b3a');
-    // Restore hidden panels
-    document.getElementById('el-status').style.display='';
-    document.querySelector('.stats-row').style.display='';
-    document.getElementById('panel-op').style.display='';
-    document.querySelector('.action-row').style.display='';
-    document.getElementById('edit-mode-bar').classList.remove('visible');
-    document.getElementById('edit-banner').classList.remove('visible');
-    document.getElementById('btn-edit').classList.remove('btn-edit-active');
-    document.getElementById('btn-edit').textContent='✏️ Editor mode';
-    document.getElementById('btn-hint').disabled=false;
-    document.getElementById('btn-skip').disabled=false;
-    document.getElementById('btn-random').disabled=false;
-    evalBarShow(false);
-    clearArrow();
-    showArrow=false;
-    lastBestMove=null;
-    lastEvalData=null;
-    document.getElementById('edit-arrow-toggle').classList.remove('btn-edit-active');
-    resetBoard();
+  if (match){
+    stats.correct++;
+    currentNode = match;
+    render();
+    flashSquare(to, true);
+    if (currentNode.children.length === 0){
+      sessionEnded = true;
+      render();
+    } else {
+      maybeAutoPlayOpponent();
+    }
+  } else {
+    stats.incorrect++;
+    chess.undo();
+    lastMove = null;
+    render();
+    flashSquare(to, false);
   }
 }
-
-function renderEditBoard(){
-  // Temporarily swap engine so renderBoard draws the edit position
-  const savedEngine=engine;
-  engine=editEngine;
-  renderBoard();
-  engine=savedEngine;
+function flashSquare(square, correct){
+  var sqEl = document.querySelector('.square[data-square="'+square+'"]');
+  if (!sqEl) return;
+  sqEl.classList.add(correct ? "flash-correct" : "flash-incorrect");
+  setTimeout(function(){ sqEl.classList.remove("flash-correct","flash-incorrect"); }, 500);
+}
+function maybeAutoPlayOpponent(){
+  if (!currentNode || currentNode.children.length === 0) return;
+  if (chess.turn() === trainColor) return;
+  setTimeout(function(){
+    if (mode !== "practice") return;
+    var opts = currentNode.children;
+    var pick = opts[Math.floor(Math.random()*opts.length)];
+    var mv = chess.move(pick.san);
+    if (!mv) return;
+    lastMove = { from: mv.from, to: mv.to };
+    currentNode = pick;
+    if (currentNode.children.length === 0) sessionEnded = true;
+    render();
+  }, 550);
+}
+function showHint(){
+  if (!currentNode.children.length){ showToast("Geen zetten meer om te oefenen"); return; }
+  var target = currentNode.children[0];
+  var tmp = new Chess(currentNode.fen);
+  var mv = tmp.move(target.san);
+  if (!mv) return;
+  clearHighlights();
+  var board = document.getElementById("board");
+  var fromEl = board.querySelector('.square[data-square="'+mv.from+'"]');
+  var toEl = board.querySelector('.square[data-square="'+mv.to+'"]');
+  if (fromEl) fromEl.classList.add("hi-from");
+  if (toEl) toEl.classList.add("hi-to");
+  showToast("Hint: " + mv.san);
+}
+function skipMove(){
+  if (!currentNode.children.length){ showToast("Geen zetten meer om te oefenen"); return; }
+  var target = currentNode.children[0];
+  var mv = chess.move(target.san);
+  if (!mv){ return; }
+  lastMove = { from: mv.from, to: mv.to };
+  currentNode = target;
+  render();
+  if (currentNode.children.length === 0){ sessionEnded = true; render(); return; }
+  maybeAutoPlayOpponent();
 }
 
-function updEditDisplay(){
-  const el=document.getElementById('edit-moves-display');
-  if(!editMoves.length){el.textContent='— nog geen zetten —';return;}
-  // Build PGN string
-  let pgn='';
-  for(let i=0;i<editMoves.length;i++){
-    if(i%2===0)pgn+=(Math.floor(i/2)+1)+'. ';
-    pgn+=editMoves[i].san+' ';
+/* ---------- Moves table ---------- */
+function renderMovesSection(o){
+  var section = el("div",{class:"moves-section"});
+  var header = el("div",{class:"moves-header" + (movesOpen ? " open":"")},[
+    el("span",{},["Zetten"]),
+    el("span",{class:"chev"},["\u25BC"])
+  ]);
+  header.addEventListener("click", function(){
+    movesOpen = !movesOpen;
+    header.classList.toggle("open", movesOpen);
+    body.classList.toggle("open", movesOpen);
+  });
+  var body = el("div",{class:"moves-body" + (movesOpen ? " open":"")});
+  var inner = el("div",{class:"moves-body-inner"});
+  if (!o.tree.children || o.tree.children.length === 0){
+    inner.appendChild(el("div",{class:"no-moves"},["Nog geen zetten opgeslagen."]));
+  } else {
+    inner.appendChild(buildMoveTreeDom(o.tree, 0));
   }
-  el.textContent=pgn.trim();
+  body.appendChild(inner);
+  section.appendChild(header);
+  section.appendChild(body);
+  return section;
 }
-
-function editMovePiece(from,to){
-  if(!editEngine)return false;
-  const p=editEngine.b[from];
-  if(!p)return false;
-  if(editEngine.col(p)!==editEngine.turn)return false;
-  if(!editEngine.legal(from).includes(to))return false;
-  // Check for pawn promotion — default to queen
-  const{rank:tr}=i2s(to);
-  const isPromo=p.toLowerCase()==='p'&&(tr===0||tr===7);
-  const san=editEngine.move(from,to,isPromo?'q':undefined);
-  if(!san)return false;
-  editMoves.push({san,from,to});
-  renderEditBoard();
-  updEditDisplay();
-  evalRequest();
-  return true;
-}
-
-function editUndo(){
-  if(!editMoves.length)return;
-  editMoves.pop();
-  // Rebuild engine state from scratch
-  editEngine=new Engine();
-  for(const m of editMoves)editEngine.move(m.from,m.to,'q');
-  renderEditBoard();
-  updEditDisplay();
-  evalRequest();
-}
-
-function editClear(){
-  editMoves=[];
-  editEngine=new Engine();
-  renderEditBoard();
-  updEditDisplay();
-  evalRequest();
-}
-
-function editToPgn(){
-  if(!editMoves.length){alert('Geen zetten om over te zetten.');return;}
-  let pgn='';
-  for(let i=0;i<editMoves.length;i++){
-    if(i%2===0)pgn+=(Math.floor(i/2)+1)+'. ';
-    pgn+=editMoves[i].san+' ';
+function buildMoveTreeDom(node, ply){
+  var frag = document.createDocumentFragment();
+  if (!node.children || node.children.length === 0) return frag;
+  var main = node.children[0];
+  frag.appendChild(makeMoveSpan(main, ply));
+  for (var i=1;i<node.children.length;i++){
+    var alt = node.children[i];
+    var subtree = buildMoveTreeDom(alt, ply+1);
+    var wrap = el("span",{class:"variation"});
+    wrap.appendChild(document.createTextNode(" ("));
+    wrap.appendChild(makeMoveSpan(alt, ply, true));
+    wrap.appendChild(document.createTextNode(" "));
+    wrap.appendChild(subtree);
+    wrap.appendChild(document.createTextNode(") "));
+    frag.appendChild(wrap);
   }
-  pgn=pgn.trim()+' *';
-  document.getElementById('pgn-input').value=pgn;
-  // Open PGN panel if collapsed
-  const panel=document.getElementById('panel-pgn');
-  if(!panel.classList.contains('open'))panel.classList.add('open');
-  // Scroll to PGN panel
-  panel.scrollIntoView({behavior:'smooth',block:'start'});
-  // Sluit editor mode zonder resetBoard aan te roepen
-  exitEditMode(false);
+  frag.appendChild(document.createTextNode(" "));
+  frag.appendChild(buildMoveTreeDom(main, ply+1));
+  return frag;
+}
+function makeMoveSpan(node, ply, forceDots){
+  var num = Math.floor(ply/2)+1;
+  var prefix = (ply % 2 === 0) ? (num + ". ") : (forceDots ? (num + "... ") : "");
+  var span = el("span",{class:"mv" + (node===currentNode ? " current":"")},[prefix + node.san]);
+  span.addEventListener("click", function(){
+    currentNode = node;
+    chess.load(node.fen);
+    lastMove = null;
+    render();
+  });
+  return span;
 }
 
-// ── EDIT MODE DRAG INTERCEPT ──
-// We override startDrag/finishMove when editMode is active
-const _origStartDrag=startDrag;
-const _origFinishMove=finishMove;
+/* ================= INIT ================= */
+openings = loadOpenings();
+(function pickInitialOpening(){
+  if (openings.length === 0) return;
+  var sorted = openings.slice().sort(function(a,b){
+    return (b.lastOpenedAt || b.createdAt) - (a.lastOpenedAt || a.createdAt);
+  });
+  var o = sorted[0];
+  activeOpeningId = o.id;
+  trainColor = o.trainColor || "w";
+  mode = nodeCount(o.tree) > 1 ? "practice" : "editor";
+  currentNode = o.tree;
+  chess.load(o.tree.fen);
+  boardFlipped = (trainColor === "b");
+})();
+render();
+if (activeOpeningId && mode === "practice") maybeAutoPlayOpponent();
 
+})();
 
-
-// ══════════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════════
-// ── REVIEW NAV BUTTONS ──
-document.getElementById('rev-first').addEventListener('click',()=>{if(reviewIdx!==null)enterReview(0);});
-document.getElementById('rev-prev').addEventListener('click',()=>{if(reviewIdx!==null&&reviewIdx>0)enterReview(reviewIdx-1);});
-document.getElementById('rev-next').addEventListener('click',()=>{if(reviewIdx!==null&&reviewIdx<moveIdx)enterReview(reviewIdx+1);});
-document.getElementById('rev-last').addEventListener('click',()=>{if(reviewIdx!==null)enterReview(moveIdx);});
-document.getElementById('rev-resume').addEventListener('click',exitReview);
-
-// ── KEYBOARD NAVIGATION ──
-document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
-  if(e.key==='ArrowLeft'){
-    e.preventDefault();
-    if(reviewIdx===null){if(moveIdx>0)enterReview(moveIdx-1);}
-    else if(reviewIdx>0)enterReview(reviewIdx-1);
-  }else if(e.key==='ArrowRight'){
-    e.preventDefault();
-    if(reviewIdx===null)return;
-    if(reviewIdx<moveIdx)enterReview(reviewIdx+1);
-    else exitReview();
-  }
-});
-
-document.getElementById('btn-edit').addEventListener('click',()=>{if(editMode)exitEditMode();else enterEditMode();});
-document.getElementById('edit-arrow-toggle').addEventListener('click',()=>{
-  showArrow=!showArrow;
-  const btn=document.getElementById('edit-arrow-toggle');
-  if(showArrow){
-    btn.classList.add('btn-edit-active');
-    if(lastBestMove)drawArrow(lastBestMove.from,lastBestMove.to);
-  }else{
-    btn.classList.remove('btn-edit-active');
-    clearArrow();
-  }
-});
-document.getElementById('edit-clear').addEventListener('click',editClear);
-document.getElementById('edit-done').addEventListener('click',editToPgn);
-document.getElementById('btn-add').addEventListener('click',addOp);
-document.getElementById('btn-random').addEventListener('click',pickRandom);
-document.getElementById('btn-reset').addEventListener('click',resetBoard);
-document.getElementById('btn-flip').addEventListener('click',()=>{flipped=!flipped;renderBoard();renderEvalBar();if(showArrow&&lastBestMove)drawArrow(lastBestMove.from,lastBestMove.to);else clearArrow();});
-document.getElementById('btn-hint').addEventListener('click',showHint);
-document.getElementById('btn-skip').addEventListener('click',skipMove);
-document.getElementById('pgn-name').addEventListener('keydown',e=>{if(e.key==='Enter')addOp();});
-
-// Migrate old storage keys
-try{
-  const old=localStorage.getItem('co_v2')||localStorage.getItem('chess_openings');
-  if(old&&!openings.length){
-    const parsed=JSON.parse(old);
-    parsed.forEach(op=>{if(!op.color)op.color='white';});
-    openings=parsed;saveOp();
-  }
-}catch(e){}
-
-// Auto-load openings.json if present and localStorage is empty
-if(!openings.length){
-  fetch('openings.json')
-    .then(r=>{if(!r.ok)throw new Error('niet gevonden');return r.json();})
-    .then(d=>{
-      if(!Array.isArray(d))throw new Error('ongeldig formaat');
-      d.forEach(op=>{if(op.name&&Array.isArray(op.moves))openings.push(op);});
-      saveOp();updOpList();resetBoard();
-    })
-    .catch(()=>{updOpList();updStats();resetBoard();});
-}else{
-  updOpList();
-  updStats();
-  resetBoard();
-}
 </script>
 </body>
 </html>
