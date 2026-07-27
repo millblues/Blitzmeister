@@ -71,7 +71,7 @@ input,textarea{font-family:inherit;}
 /* ---------- Library ---------- */
 .section-pad{padding:0 20px;}
 .subtitle{color:var(--ink-muted);font-size:14.5px;margin:0 0 18px;}
-.lib-actions{display:flex;gap:10px;margin-bottom:18px;}
+.lib-actions{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
 .opening-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
 .opening-card{
   background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-md);
@@ -98,14 +98,16 @@ input,textarea{font-family:inherit;}
 }
 .info-title{font-weight:800;font-size:18px;margin:0 0 6px;}
 .info-text{color:var(--ink-muted);font-size:14.5px;line-height:1.45;margin:0 0 14px;}
-.progressbar{height:7px;background:var(--green-soft);border-radius:99px;overflow:hidden;margin-bottom:8px;}
-.progressbar > div{height:100%;background:var(--green);border-radius:99px;transition:width .25s ease;}
+.progressbar{height:7px;background:var(--card-border);border-radius:99px;overflow:hidden;margin-bottom:8px;}
+.progressbar > div{height:100%;background:var(--ink-faint);border-radius:99px;transition:width .25s ease, background .25s ease;}
+.progressbar > div.complete{background:var(--green);}
 .progress-label{font-size:12.5px;color:var(--ink-muted);text-align:right;margin-bottom:14px;}
 
 /* ---------- Trainer top ---------- */
 .trainer-top{display:flex;align-items:center;gap:10px;padding:calc(14px + var(--safe-top)) 20px 4px;}
 .trainer-title{flex:1;min-width:0;font-weight:800;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mode-toggle{display:flex;background:var(--green-soft);border-radius:999px;padding:4px;margin:10px 20px 14px;}
+.practice-all-bar{display:flex;align-items:center;justify-content:space-between;background:var(--green);color:#fff;border-radius:999px;padding:10px 8px 10px 18px;margin:10px 20px 14px;font-weight:700;font-size:14.5px;}
 .mode-toggle button{flex:1;border:none;background:transparent;padding:10px 0;border-radius:999px;font-weight:700;font-size:14.5px;color:var(--green-dark);cursor:pointer;}
 .mode-toggle button.active{background:var(--green);color:#fff;}
 
@@ -190,7 +192,6 @@ textarea.text-input{resize:vertical;min-height:110px;font-family:ui-monospace,SF
 .modal-tabs button.active{background:var(--green);color:#fff;}
 .promo-choices{display:flex;gap:10px;justify-content:center;padding:8px 0;}
 .promo-choices button{width:64px;height:64px;border-radius:14px;border:1px solid var(--card-border);background:var(--green-softer);cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.end-banner{background:var(--green-soft);color:var(--green-dark);border-radius:14px;padding:14px 16px;font-weight:700;text-align:center;margin:0 20px 14px;}
 .toast{position:fixed;bottom:calc(24px + var(--safe-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;font-weight:600;z-index:2000;box-shadow:0 4px 16px rgba(0,0,0,.25);}
 </style>
 </head>
@@ -1984,6 +1985,7 @@ var movesOpen = false;
 var lastMove = null; // {from,to} for highlight
 var sessionEnded = false;
 var drawerOpen = false;
+var practiceAllMode = false;
 
 var app = document.getElementById("app");
 
@@ -2169,10 +2171,13 @@ function renderDrawer(){
   panel.appendChild(top);
 
   var sec = el("div",{class:"section-pad"});
-  sec.appendChild(el("p",{class:"subtitle"},["Jouw persoonlijke bibliotheek met schaakopeningen."]));
   var actions = el("div",{class:"lib-actions"},[
     el("button",{class:"btn btn-primary btn-block", onclick: openNewOpeningModal},["\uFF0B Nieuwe opening"]),
-    el("button",{class:"btn btn-icon", onclick: openImportModal, title:"Importeer PGN"},["\u2B07"])
+    el("button",{class:"btn btn-block", onclick: startPracticeAll},["Alles oefenen"]),
+    el("div",{class:"row-gap"},[
+      el("button",{class:"btn", onclick: downloadAllOpenings},["Download"]),
+      el("button",{class:"btn", onclick: triggerUpload},["Upload"])
+    ])
   ]);
   sec.appendChild(actions);
 
@@ -2180,7 +2185,7 @@ function renderDrawer(){
   if (openings.length === 0){
     list.appendChild(el("div",{class:"empty-state"},[
       el("div",{class:"es-icon"},["\u265E"]),
-      el("div",{},["Nog geen openingen. Maak je eerste opening aan of importeer een PGN."])
+      el("div",{},["Nog geen openingen. Maak je eerste opening aan."])
     ]));
   } else {
     openings.slice().sort(function(a,b){return b.createdAt-a.createdAt;}).forEach(function(o){
@@ -2213,8 +2218,7 @@ function openCardMenu(o){
   var overlay = el("div",{class:"modal-overlay", onclick:function(e){ if(e.target===overlay) overlay.remove(); }});
   var sheet = el("div",{class:"modal-sheet"},[
     el("div",{class:"modal-title"},[o.name]),
-    el("button",{class:"btn btn-block", style:"margin-bottom:10px;", onclick:function(){ overlay.remove(); openRenameModal(o); }},["\u270F\uFE0F Hernoemen"]),
-    el("button",{class:"btn btn-block", style:"margin-bottom:10px;", onclick:function(){ overlay.remove(); openExportModal(o); }},["\u2B06 Exporteer PGN"]),
+    el("button",{class:"btn btn-block", style:"margin-bottom:10px;", onclick:function(){ overlay.remove(); openRenameModal(o); }},["Hernoemen"]),
     el("button",{class:"btn btn-block btn-danger", onclick:function(){
       overlay.remove();
       confirmDialog("Opening verwijderen?", "\u201C" + o.name + "\u201D wordt definitief verwijderd.", function(){
@@ -2227,7 +2231,7 @@ function openCardMenu(o){
         }
         render();
       });
-    }},["\uD83D\uDDD1 Verwijderen"])
+    }},["Verwijderen"])
   ]);
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
@@ -2303,61 +2307,65 @@ function openRenameModal(o){
 }
 
 /* ----- Import modal (new opening from PGN) ----- */
-function openImportModal(){
-  var overlay = el("div",{class:"modal-overlay"});
-  var nameInput = el("input",{class:"text-input", type:"text", placeholder:"Naam voor deze opening"});
-  var pgnInput = el("textarea",{class:"text-input", placeholder:"Plak hier je PGN (mag varianten met haakjes bevatten)\u2026"});
-  var sheet = el("div",{class:"modal-sheet"},[
-    el("div",{class:"modal-title"},["Importeer PGN"]),
-    el("div",{class:"field-label"},["Naam"]), nameInput,
-    el("div",{class:"field-label"},["PGN"]), pgnInput,
-    el("div",{class:"modal-actions"},[
-      el("button",{class:"btn", style:"flex:1;", onclick:function(){ overlay.remove(); }},["Annuleren"]),
-      el("button",{class:"btn btn-primary", style:"flex:1;", onclick:function(){
-        var txt = pgnInput.value.trim();
-        if (!txt){ showToast("Plak eerst een PGN"); return; }
-        var tree;
-        try{ tree = parsePGNToTree(txt); }catch(e){ showToast("Kon PGN niet lezen"); return; }
-        if (!tree.children || tree.children.length === 0){ showToast("Geen geldige zetten gevonden"); return; }
-        var o = newOpeningObj(nameInput.value.trim() || "Ge\u00efmporteerde opening");
-        o.tree = tree;
-        openings.push(o);
-        saveOpenings();
-        overlay.remove();
-        drawerOpen = false;
-        openTrainer(o.id, "practice");
-      }},["Importeren"])
-    ])
-  ]);
-  overlay.appendChild(sheet);
-  document.body.appendChild(overlay);
+
+function downloadAllOpenings(){
+  if (openings.length === 0){ showToast("Je hebt nog geen openingen om te downloaden"); return; }
+  var sorted = openings.slice().sort(function(a,b){return b.createdAt-a.createdAt;});
+  var combined = sorted.map(function(o){ return openingToPGN(o); }).join("\n\n\n");
+  var blob = new Blob([combined], {type:"application/x-chess-pgn"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "blitzmeister-openingen.pgn";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  showToast("Download gestart");
 }
 
-/* ----- Export modal ----- */
-function openExportModal(o){
-  var pgn = openingToPGN(o);
-  var overlay = el("div",{class:"modal-overlay"});
-  var ta = el("textarea",{class:"text-input", readonly:"true"});
-  ta.value = pgn;
-  var sheet = el("div",{class:"modal-sheet"},[
-    el("div",{class:"modal-title"},["PGN \u2014 " + o.name]),
-    ta,
-    el("div",{class:"modal-actions"},[
-      el("button",{class:"btn", style:"flex:1;", onclick:function(){ overlay.remove(); }},["Sluiten"]),
-      el("button",{class:"btn btn-primary", style:"flex:1;", onclick:function(){
-        ta.select(); ta.setSelectionRange(0,999999);
-        try{ document.execCommand("copy"); }catch(e){}
-        if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(pgn).catch(function(){}); }
-        showToast("PGN gekopieerd");
-      }},["Kopieer"])
-    ])
-  ]);
-  overlay.appendChild(sheet);
-  document.body.appendChild(overlay);
+function triggerUpload(){
+  var input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".pgn,.txt,text/plain";
+  input.style.display = "none";
+  input.addEventListener("change", function(){
+    var file = input.files && input.files[0];
+    input.remove();
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e){ importCombinedPGN(e.target.result); };
+    reader.onerror = function(){ showToast("Kon bestand niet lezen"); };
+    reader.readAsText(file);
+  });
+  document.body.appendChild(input);
+  input.click();
+}
+function importCombinedPGN(text){
+  if (!text || !text.trim()){ showToast("Bestand is leeg"); return; }
+  var blocks = text.split(/(?=\[Event\s)/i).map(function(b){ return b.trim(); }).filter(Boolean);
+  if (blocks.length === 0) blocks = [text.trim()];
+  var importedCount = 0;
+  blocks.forEach(function(block, i){
+    var tree;
+    try{ tree = parsePGNToTree(block); }catch(e){ return; }
+    if (!tree.children || tree.children.length === 0) return;
+    var nameMatch = block.match(/\[Event\s+"([^"]*)"\]/i);
+    var name = (nameMatch && nameMatch[1].trim()) ? nameMatch[1].trim() : "Ge\u00efmporteerde opening " + (i+1);
+    var o = newOpeningObj(name);
+    o.tree = tree;
+    openings.push(o);
+    importedCount++;
+  });
+  if (importedCount === 0){ showToast("Geen geldige openingen gevonden in dit bestand"); return; }
+  saveOpenings();
+  render();
+  showToast(importedCount + " opening" + (importedCount===1?"":"en") + " ge\u00efmporteerd");
 }
 
 /* ================= TRAINER VIEW ================= */
 function openTrainer(id, startMode){
+  practiceAllMode = false;
   activeOpeningId = id;
   var o = getActiveOpening();
   o.lastOpenedAt = Date.now();
@@ -2409,6 +2417,47 @@ function resetSession(){
   if (mode === "practice") maybeAutoPlayOpponent();
 }
 
+/* ---------- Practice-all (random) mode ---------- */
+function practicableOpenings(){
+  return openings.filter(function(o){ return o.tree.children && o.tree.children.length > 0; });
+}
+function startPracticeAll(){
+  var eligible = practicableOpenings();
+  if (eligible.length === 0){ showToast("Je hebt nog geen openingen met zetten om te oefenen"); return; }
+  practiceAllMode = true;
+  drawerOpen = false;
+  pickRandomPractice();
+}
+function stopPracticeAll(){
+  practiceAllMode = false;
+  render();
+}
+function pickRandomPractice(){
+  var eligible = practicableOpenings();
+  if (eligible.length === 0){ practiceAllMode = false; render(); return; }
+  var o = eligible[Math.floor(Math.random() * eligible.length)];
+  activeOpeningId = o.id;
+  trainColor = o.trainColor || "w";
+  mode = "practice";
+  currentNode = o.tree;
+  chess.reset();
+  boardFlipped = (trainColor === "b");
+  stats = { correct:0, incorrect:0 };
+  movesOpen = false;
+  sessionEnded = false;
+  lastMove = null;
+  render();
+  maybeAutoPlayOpponent();
+}
+function handleSessionComplete(){
+  render();
+  if (practiceAllMode){
+    setTimeout(function(){
+      if (practiceAllMode) pickRandomPractice();
+    }, 1400);
+  }
+}
+
 function renderMainScreen(){
   var o = getActiveOpening();
 
@@ -2418,30 +2467,36 @@ function renderMainScreen(){
   var top = el("div",{class:"trainer-top"},[
     el("button",{class:"btn btn-icon", onclick: toggleDrawer, title:"Menu"},["\u2630"]),
     titleEl,
-    o ? el("button",{class:"btn btn-icon", onclick:function(){ boardFlipped = !boardFlipped; render(); }, title:"Bord draaien"},["\u21C5"]) : null,
-    o ? el("button",{class:"btn btn-icon", onclick:function(){ openExportModal(o); }, title:"PGN"},["\u2B06"]) : null
+    o ? el("button",{class:"btn btn-icon", onclick:function(){ boardFlipped = !boardFlipped; render(); }, title:"Bord draaien"},["\u21C5"]) : null
   ]);
   app.appendChild(top);
 
   if (!o){
     app.appendChild(el("div",{class:"info-card"},[
       el("div",{class:"info-title"},["Welkom bij BlitzMeister"]),
-      el("p",{class:"info-text"},["Je hebt nog geen opening geopend. Maak een nieuwe opening aan, importeer een PGN, of kies er een via het menu linksboven."]),
+      el("p",{class:"info-text"},["Je hebt nog geen opening geopend. Maak een nieuwe opening aan, of kies er een via het menu linksboven."]),
       el("button",{class:"btn btn-primary btn-block", onclick: openNewOpeningModal},["\uFF0B Nieuwe opening"])
     ]));
     app.appendChild(renderBoardWrap());
     return;
   }
 
-  var toggle = el("div",{class:"mode-toggle"},[
-    el("button",{class: mode==="practice" ? "active":"", onclick:function(){ setMode("practice"); }},["\uD83C\uDFAF Oefenen"]),
-    el("button",{class: mode==="editor" ? "active":"", onclick:function(){ setMode("editor"); }},["\u270F\uFE0F Bewerken"])
-  ]);
-  app.appendChild(toggle);
+  if (practiceAllMode){
+    app.appendChild(el("div",{class:"practice-all-bar"},[
+      el("span",{},["Alles oefenen"]),
+      el("button",{class:"btn btn-sm", onclick: stopPracticeAll},["Stoppen"])
+    ]));
+  } else {
+    var toggle = el("div",{class:"mode-toggle"},[
+      el("button",{class: mode==="practice" ? "active":"", onclick:function(){ setMode("practice"); }},["Oefenen"]),
+      el("button",{class: mode==="editor" ? "active":"", onclick:function(){ setMode("editor"); }},["Bewerken"])
+    ]);
+    app.appendChild(toggle);
+  }
 
-  app.appendChild(renderInfoCard(o));
+  app.appendChild(renderMovesSection(o));
 
-  if (mode === "practice"){
+  if (mode === "practice" && !practiceAllMode){
     var pick = el("div",{class:"section-pad"},[
       el("div",{class:"color-pick"},[
         el("button",{class:"btn" + (trainColor==="w" ? " selected":""), onclick:function(){ setTrainColor("w"); }},["\u2654 Wit"]),
@@ -2453,54 +2508,34 @@ function renderMainScreen(){
 
   app.appendChild(renderBoardWrap());
 
-  if (sessionEnded){
-    app.appendChild(el("div",{class:"end-banner"},["\uD83C\uDF89 Einde van deze variant! Goed geoefend."]));
+  if (mode === "practice"){
+    app.appendChild(renderInfoCard(o));
   }
 
-  if (mode === "practice"){
-    app.appendChild(el("div",{class:"actions-row"},[
-      el("button",{class:"btn", style:"flex:1;", onclick: showHint},["\uD83D\uDCA1 Hint"]),
-      el("button",{class:"btn", style:"flex:1;", onclick: skipMove},["\u23ED Sla over"])
-    ]));
-    app.appendChild(el("div",{class:"stats-row"},[
-      el("div",{class:"stat-box correct"},[el("div",{class:"num"},[String(stats.correct)]), el("div",{class:"lbl"},["Goed"])]),
-      el("div",{class:"stat-box incorrect"},[el("div",{class:"num"},[String(stats.incorrect)]), el("div",{class:"lbl"},["Fout"])])
-    ]));
-  } else {
+  if (mode === "editor"){
     app.appendChild(el("div",{class:"actions-row"},[
       el("button",{class:"btn", style:"flex:1;", onclick: editorStepBack, disabled: currentNode===o.tree},["\u2190 Terug"]),
-      el("button",{class:"btn btn-danger", style:"flex:1;", onclick: editorDeleteHere, disabled: currentNode===o.tree},["\uD83D\uDDD1 Verwijder deze zet"])
+      el("button",{class:"btn btn-danger", style:"flex:1;", onclick: editorDeleteHere, disabled: currentNode===o.tree},["Zet verwijderen"])
     ]));
   }
 
   app.appendChild(el("div",{class:"actions-row"},[
     el("button",{class:"btn btn-block", onclick: resetSession},["\u21BA Opnieuw"])
   ]));
-
-  app.appendChild(renderMovesSection(o));
 }
 
 function renderInfoCard(o){
-  if (mode === "editor"){
-    return el("div",{class:"info-card"},[
-      el("div",{class:"info-title"},["Bewerkmodus"]),
-      el("p",{class:"info-text"},["Sleep de stukken om zetten toe te voegen aan deze opening. Bestaat de zet al? Dan spring je automatisch naar die variant. Speel een ander antwoord op hetzelfde punt om een nieuwe variant te maken."])
-    ]);
-  }
   var depth = nodeDepth(currentNode);
-  var total = maxDepth(o.tree) + nodeDepth(o.tree === currentNode ? currentNode : findPathRoot(o, currentNode));
   var longest = maxDepth(o.tree);
   var pct = longest === 0 ? 0 : Math.min(100, Math.round((depth/longest)*100));
+  var complete = sessionEnded;
   var card = el("div",{class:"info-card"},[
-    el("div",{class:"info-title"},["Oefenmodus \u2014 " + (trainColor==="w" ? "jij speelt Wit" : "jij speelt Zwart")]),
-    el("p",{class:"info-text"},["Speel de zetten die bij deze opening horen. De tegenstander speelt automatisch. Weet je het niet zeker? Gebruik een hint."]),
-    el("div",{class:"progressbar"},[el("div",{style:"width:"+pct+"%"})]),
+    el("div",{class:"info-title"},[o.name + " - Jij speelt " + (trainColor==="w" ? "Wit" : "Zwart")]),
+    el("div",{class:"progressbar"},[el("div",{class: complete ? "complete" : "", style:"width:"+pct+"%"})]),
     el("div",{class:"progress-label"},[depth + " / " + longest + " zetten"])
   ]);
   return card;
 }
-function findPathRoot(o, node){ return o.tree; }
-
 /* ---------- Board rendering ---------- */
 var dragCtx = null;
 
@@ -2706,7 +2741,7 @@ function processPracticeMove(moveResult, to){
     flashSquare(to, true);
     if (currentNode.children.length === 0){
       sessionEnded = true;
-      render();
+      handleSessionComplete();
     } else {
       maybeAutoPlayOpponent();
     }
@@ -2735,34 +2770,13 @@ function maybeAutoPlayOpponent(){
     if (!mv) return;
     lastMove = { from: mv.from, to: mv.to };
     currentNode = pick;
-    if (currentNode.children.length === 0) sessionEnded = true;
-    render();
+    if (currentNode.children.length === 0){
+      sessionEnded = true;
+      handleSessionComplete();
+    } else {
+      render();
+    }
   }, 550);
-}
-function showHint(){
-  if (!currentNode.children.length){ showToast("Geen zetten meer om te oefenen"); return; }
-  var target = currentNode.children[0];
-  var tmp = new Chess(currentNode.fen);
-  var mv = tmp.move(target.san);
-  if (!mv) return;
-  clearHighlights();
-  var board = document.getElementById("board");
-  var fromEl = board.querySelector('.square[data-square="'+mv.from+'"]');
-  var toEl = board.querySelector('.square[data-square="'+mv.to+'"]');
-  if (fromEl) fromEl.classList.add("hi-from");
-  if (toEl) toEl.classList.add("hi-to");
-  showToast("Hint: " + mv.san);
-}
-function skipMove(){
-  if (!currentNode.children.length){ showToast("Geen zetten meer om te oefenen"); return; }
-  var target = currentNode.children[0];
-  var mv = chess.move(target.san);
-  if (!mv){ return; }
-  lastMove = { from: mv.from, to: mv.to };
-  currentNode = target;
-  render();
-  if (currentNode.children.length === 0){ sessionEnded = true; render(); return; }
-  maybeAutoPlayOpponent();
 }
 
 /* ---------- Moves table ---------- */
