@@ -112,9 +112,13 @@ input,textarea{font-family:inherit;}
 .mode-toggle button.active{background:var(--green);color:#fff;}
 
 /* ---------- Board ---------- */
-.board-wrap{padding:0 16px;margin-bottom:14px;}
+.board-wrap{padding:0 16px;margin-bottom:14px;display:flex;gap:8px;align-items:stretch;}
+.eval-bar-wrap{width:20px;border-radius:7px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--card-border);flex:none;display:flex;flex-direction:column;position:relative;}
+.eval-bar-white{background:#F7F6EF;transition:flex-grow .4s ease;}
+.eval-bar-black{background:#20241A;transition:flex-grow .4s ease;}
+.eval-bar-score{position:absolute;top:3px;left:0;right:0;text-align:center;font-size:8.5px;font-weight:800;color:var(--ink);text-shadow:0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff;letter-spacing:-0.02em;}
 .board{
-  width:100%;aspect-ratio:1/1;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
+  flex:1;min-width:0;aspect-ratio:1/1;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
   border-radius:14px;overflow:hidden;box-shadow:var(--shadow);position:relative;touch-action:none;
 }
 .square{position:relative;display:flex;align-items:center;justify-content:center;}
@@ -1983,6 +1987,9 @@ var boardFlipped = false;
 var stats = { correct: 0, incorrect: 0 };
 var movesOpen = false;
 var lastMove = null; // {from,to} for highlight
+var currentEval = { winChance: 50, mate: null, eval: 0 };
+var lastEvalFen = null;
+var evalRequestSeq = 0;
 var sessionEnded = false;
 var drawerOpen = false;
 var practiceAllMode = false;
@@ -2461,13 +2468,16 @@ function handleSessionComplete(){
 function renderMainScreen(){
   var o = getActiveOpening();
 
-  var titleEl = o
-    ? el("div",{class:"trainer-title", onclick:function(){ openRenameModal(o); }},[o.name])
-    : el("div",{class:"trainer-title"},["BlitzMeister"]);
+  var brandEl = el("div", {class:"brand"}, [
+    el("span",{class:"pawn"},["\u265F"]),
+    el("span",{class:"brand-word"},[
+      el("span",{class:"blitz"},["Blitz"]),
+      el("span",{class:"meister"},["Meister"])
+    ])
+  ]);
   var top = el("div",{class:"trainer-top"},[
     el("button",{class:"btn btn-icon", onclick: toggleDrawer, title:"Menu"},["\u2630"]),
-    titleEl,
-    o ? el("button",{class:"btn btn-icon", onclick:function(){ boardFlipped = !boardFlipped; render(); }, title:"Bord draaien"},["\u21C5"]) : null
+    brandEl
   ]);
   app.appendChild(top);
 
@@ -2541,10 +2551,51 @@ var dragCtx = null;
 
 function renderBoardWrap(){
   var wrap = el("div",{class:"board-wrap"});
+  var evalWrap = el("div",{class:"eval-bar-wrap", id:"eval-bar-wrap"});
+  renderEvalBarInto(evalWrap);
+  wrap.appendChild(evalWrap);
   var board = el("div",{class:"board", id:"board"});
   wrap.appendChild(board);
   buildBoardSquares(board);
+  fetchEvalIfNeeded();
   return wrap;
+}
+function renderEvalBarInto(wrap){
+  clear(wrap);
+  var wc = Math.max(0, Math.min(100, currentEval.winChance));
+  var whiteSeg = el("div",{class:"eval-bar-white", style:"flex:"+wc+" 1 0;"});
+  var blackSeg = el("div",{class:"eval-bar-black", style:"flex:"+(100-wc)+" 1 0;"});
+  var scoreText;
+  if (currentEval.mate !== null && currentEval.mate !== undefined){
+    scoreText = "M" + Math.abs(currentEval.mate);
+  } else {
+    var e = currentEval.eval || 0;
+    scoreText = (e > 0 ? "+" : "") + e.toFixed(1);
+  }
+  var label = el("div",{class:"eval-bar-score"},[scoreText]);
+  if (boardFlipped){ wrap.appendChild(whiteSeg); wrap.appendChild(blackSeg); }
+  else { wrap.appendChild(blackSeg); wrap.appendChild(whiteSeg); }
+  wrap.appendChild(label);
+}
+function fetchEvalIfNeeded(){
+  var fen = chess.fen();
+  if (fen === lastEvalFen) return;
+  lastEvalFen = fen;
+  if (typeof fetch !== "function") return;
+  var seq = ++evalRequestSeq;
+  try{
+    fetch("https://chess-api.com/v1", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fen: fen, depth: 12 })
+    }).then(function(r){ return r.json(); }).then(function(data){
+      if (seq !== evalRequestSeq) return; // a newer request superseded this one
+      if (!data || typeof data.winChance !== "number") return;
+      currentEval = { winChance: data.winChance, mate: data.mate, eval: data.eval };
+      var wrap = document.getElementById("eval-bar-wrap");
+      if (wrap) renderEvalBarInto(wrap);
+    }).catch(function(){ /* offline or blocked: keep showing the last known bar */ });
+  }catch(e){ /* fetch unsupported or blocked synchronously: keep neutral bar */ }
 }
 function buildBoardSquares(board){
   clear(board);
