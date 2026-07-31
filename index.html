@@ -113,7 +113,7 @@ input,textarea{font-family:inherit;}
 
 /* ---------- Board ---------- */
 .board-wrap{padding:0 16px;margin-bottom:14px;}
-.eval-bar-wrap{width:100%;height:22px;margin-top:8px;border-radius:7px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--card-border);display:flex;flex-direction:row;position:relative;}
+.eval-bar-wrap{width:100%;height:22px;margin:2px 0 14px;border-radius:7px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--card-border);display:flex;flex-direction:row;position:relative;}
 .eval-bar-white{background:#F7F6EF;transition:flex-grow .4s ease;}
 .eval-bar-black{background:#20241A;transition:flex-grow .4s ease;}
 .eval-bar-score{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:800;color:var(--ink);text-shadow:0 0 4px #fff, 0 0 4px #fff, 0 0 4px #fff;letter-spacing:-0.02em;white-space:nowrap;}
@@ -1993,6 +1993,8 @@ var evalRequestSeq = 0;
 var sessionEnded = false;
 var drawerOpen = false;
 var practiceAllMode = false;
+var freePlayMode = false;
+var freePlayTree = null;
 
 var app = document.getElementById("app");
 
@@ -2056,6 +2058,15 @@ function newOpeningObj(name){
     createdAt: Date.now(),
     tree: { san: null, fen: START_FEN, children: [], parent: null }
   };
+}
+function cloneTreeNode(node, parent){
+  var copy = { san: node.san, fen: node.fen, children: [], parent: parent || null };
+  copy.children = (node.children || []).map(function(c){ return cloneTreeNode(c, copy); });
+  return copy;
+}
+function buildTreeFromCurrentGame(){
+  if (!freePlayTree || !freePlayTree.children || freePlayTree.children.length === 0) return null;
+  return cloneTreeNode(freePlayTree, null);
 }
 function maxDepth(node){
   if (!node.children || node.children.length === 0) return 0;
@@ -2179,12 +2190,9 @@ function renderDrawer(){
 
   var sec = el("div",{class:"section-pad"});
   var actions = el("div",{class:"lib-actions"},[
-    el("button",{class:"btn btn-primary btn-block", onclick: openNewOpeningModal},["\uFF0B Nieuwe opening"]),
-    el("button",{class:"btn btn-block", onclick: startPracticeAll},["Alles oefenen"]),
-    el("div",{class:"row-gap"},[
-      el("button",{class:"btn", onclick: downloadAllOpenings},["Download"]),
-      el("button",{class:"btn", onclick: triggerUpload},["Upload"])
-    ])
+    el("button",{class:"btn btn-primary btn-block", onclick: startFreePlay},["Schaken"]),
+    el("button",{class:"btn btn-primary btn-block", onclick: startPracticeAll},["Willekeurige oefening"]),
+    el("button",{class:"btn btn-primary btn-block", onclick:function(){ openNewOpeningModal(); }},["\uFF0B Nieuwe opening"])
   ]);
   sec.appendChild(actions);
 
@@ -2200,6 +2208,12 @@ function renderDrawer(){
     });
   }
   sec.appendChild(list);
+
+  var fileActions = el("div",{class:"row-gap"},[
+    el("button",{class:"btn", onclick: downloadAllOpenings},["Download"]),
+    el("button",{class:"btn", onclick: triggerUpload},["Upload"])
+  ]);
+  sec.appendChild(fileActions);
   panel.appendChild(sec);
 
   overlay.appendChild(panel);
@@ -2208,7 +2222,7 @@ function renderDrawer(){
 }
 function renderOpeningCard(o){
   var count = nodeCount(o.tree) - 1;
-  var card = el("div",{class:"opening-card", onclick:function(){ drawerOpen=false; openTrainer(o.id); }},[
+  var card = el("div",{class:"opening-card", onclick:function(){ drawerOpen=false; openTrainer(o.id, "practice"); }},[
     el("div",{class:"oc-icon"},["\u265E"]),
     el("div",{class:"oc-main"},[
       el("div",{class:"oc-name"},[o.name]),
@@ -2225,6 +2239,7 @@ function openCardMenu(o){
   var overlay = el("div",{class:"modal-overlay", onclick:function(e){ if(e.target===overlay) overlay.remove(); }});
   var sheet = el("div",{class:"modal-sheet"},[
     el("div",{class:"modal-title"},[o.name]),
+    el("button",{class:"btn btn-block", style:"margin-bottom:10px;", onclick:function(){ overlay.remove(); drawerOpen=false; openTrainer(o.id, "editor"); }},["Bewerken"]),
     el("button",{class:"btn btn-block", style:"margin-bottom:10px;", onclick:function(){ overlay.remove(); openRenameModal(o); }},["Hernoemen"]),
     el("button",{class:"btn btn-block btn-danger", onclick:function(){
       overlay.remove();
@@ -2258,7 +2273,7 @@ function confirmDialog(title, text, onConfirm){
 }
 
 /* ----- New opening modal ----- */
-function openNewOpeningModal(){
+function openNewOpeningModal(presetTree){
   var nameInput;
   var selectedColor = "w";
   var overlay = el("div",{class:"modal-overlay"});
@@ -2283,6 +2298,7 @@ function openNewOpeningModal(){
     el("button",{class:"btn btn-primary", style:"flex:1;", onclick:function(){
       var name = nameInput.value.trim() || "Naamloze opening";
       var o = newOpeningObj(name);
+      if (presetTree) o.tree = presetTree;
       o.trainColor = selectedColor;
       openings.push(o);
       saveOpenings();
@@ -2373,6 +2389,7 @@ function importCombinedPGN(text){
 /* ================= TRAINER VIEW ================= */
 function openTrainer(id, startMode){
   practiceAllMode = false;
+  freePlayMode = false;
   activeOpeningId = id;
   var o = getActiveOpening();
   o.lastOpenedAt = Date.now();
@@ -2387,31 +2404,6 @@ function openTrainer(id, startMode){
   sessionEnded = false;
   render();
   if (mode === "practice") maybeAutoPlayOpponent();
-}
-function setMode(m){
-  mode = m;
-  var o = getActiveOpening();
-  currentNode = o.tree;
-  chess.load(o.tree.fen);
-  sessionEnded = false;
-  if (m === "practice"){
-    stats = { correct:0, incorrect:0 };
-  }
-  render();
-  if (m === "practice") maybeAutoPlayOpponent();
-}
-function setTrainColor(c){
-  trainColor = c;
-  var o = getActiveOpening();
-  o.trainColor = c;
-  saveOpenings();
-  currentNode = o.tree;
-  chess.load(o.tree.fen);
-  boardFlipped = (c === "b");
-  stats = { correct:0, incorrect:0 };
-  sessionEnded = false;
-  render();
-  maybeAutoPlayOpponent();
 }
 function resetSession(){
   var o = getActiveOpening();
@@ -2431,6 +2423,7 @@ function practicableOpenings(){
 function startPracticeAll(){
   var eligible = practicableOpenings();
   if (eligible.length === 0){ showToast("Je hebt nog geen openingen met zetten om te oefenen"); return; }
+  freePlayMode = false;
   practiceAllMode = true;
   drawerOpen = false;
   pickRandomPractice();
@@ -2462,6 +2455,13 @@ function handleSessionComplete(){
     setTimeout(function(){
       if (practiceAllMode) pickRandomPractice();
     }, 1400);
+  } else if (mode === "practice" && activeOpeningId && !freePlayMode){
+    var openingIdAtCompletion = activeOpeningId;
+    setTimeout(function(){
+      if (mode === "practice" && activeOpeningId === openingIdAtCompletion && !practiceAllMode && !freePlayMode && sessionEnded){
+        resetSession();
+      }
+    }, 1400);
   }
 }
 
@@ -2481,11 +2481,25 @@ function renderMainScreen(){
   ]);
   app.appendChild(top);
 
+  if (freePlayMode){
+    app.appendChild(renderFreePlayMovesSection());
+    app.appendChild(renderBoardWrap());
+    app.appendChild(el("div",{class:"actions-row"},[
+      el("button",{class:"btn", style:"flex:1;", onclick: editorStepBack, disabled: currentNode===freePlayTree},["\u2190 Terug"]),
+      el("button",{class:"btn", style:"flex:1;", onclick:function(){ boardFlipped = !boardFlipped; render(); }},["Bord draaien"]),
+      el("button",{class:"btn btn-danger", style:"flex:1;", onclick: editorDeleteHere, disabled: currentNode===freePlayTree},["Zet verwijderen"])
+    ]));
+    app.appendChild(el("div",{class:"actions-row"},[
+      el("button",{class:"btn btn-primary btn-block", onclick:function(){ openNewOpeningModal(buildTreeFromCurrentGame()); }},["\uFF0B Opening toevoegen"])
+    ]));
+    return;
+  }
+
   if (!o){
     app.appendChild(el("div",{class:"info-card"},[
       el("div",{class:"info-title"},["Welkom bij BlitzMeister"]),
       el("p",{class:"info-text"},["Je hebt nog geen opening geopend. Maak een nieuwe opening aan, of kies er een via het menu linksboven."]),
-      el("button",{class:"btn btn-primary btn-block", onclick: openNewOpeningModal},["\uFF0B Nieuwe opening"])
+      el("button",{class:"btn btn-primary btn-block", onclick:function(){ openNewOpeningModal(); }},["\uFF0B Nieuwe opening"])
     ]));
     app.appendChild(renderBoardWrap());
     return;
@@ -2493,28 +2507,12 @@ function renderMainScreen(){
 
   if (practiceAllMode){
     app.appendChild(el("div",{class:"practice-all-bar"},[
-      el("span",{},["Alles oefenen"]),
+      el("span",{},["Willekeurige oefening"]),
       el("button",{class:"btn btn-sm", onclick: stopPracticeAll},["Stoppen"])
     ]));
-  } else {
-    var toggle = el("div",{class:"mode-toggle"},[
-      el("button",{class: mode==="practice" ? "active":"", onclick:function(){ setMode("practice"); }},["Oefenen"]),
-      el("button",{class: mode==="editor" ? "active":"", onclick:function(){ setMode("editor"); }},["Bewerken"])
-    ]);
-    app.appendChild(toggle);
   }
 
   app.appendChild(renderMovesSection(o));
-
-  if (mode === "practice" && !practiceAllMode){
-    var pick = el("div",{class:"section-pad"},[
-      el("div",{class:"color-pick"},[
-        el("button",{class:"btn" + (trainColor==="w" ? " selected":""), onclick:function(){ setTrainColor("w"); }},["\u2654 Wit"]),
-        el("button",{class:"btn" + (trainColor==="b" ? " selected":""), onclick:function(){ setTrainColor("b"); }},["\u265A Zwart"])
-      ])
-    ]);
-    app.appendChild(pick);
-  }
 
   app.appendChild(renderBoardWrap());
 
@@ -2554,11 +2552,13 @@ function renderBoardWrap(){
   var board = el("div",{class:"board", id:"board"});
   wrap.appendChild(board);
   buildBoardSquares(board);
-  var evalWrap = el("div",{class:"eval-bar-wrap", id:"eval-bar-wrap"});
-  renderEvalBarInto(evalWrap);
-  wrap.appendChild(evalWrap);
   fetchEvalIfNeeded();
   return wrap;
+}
+function appendEvalBarTo(container){
+  var evalWrap = el("div",{class:"eval-bar-wrap", id:"eval-bar-wrap"});
+  renderEvalBarInto(evalWrap);
+  container.appendChild(evalWrap);
 }
 function renderEvalBarInto(wrap){
   clear(wrap);
@@ -2573,8 +2573,8 @@ function renderEvalBarInto(wrap){
     scoreText = (e > 0 ? "+" : "") + e.toFixed(1);
   }
   var label = el("div",{class:"eval-bar-score"},[scoreText]);
-  // left-right order mirrors the previous top-bottom convention: flipped board -> white leads on the left
-  if (boardFlipped){ wrap.appendChild(whiteSeg); wrap.appendChild(blackSeg); }
+  // follows the actual board orientation: whichever color sits at the bottom leads on the left
+  if (!boardFlipped){ wrap.appendChild(whiteSeg); wrap.appendChild(blackSeg); }
   else { wrap.appendChild(blackSeg); wrap.appendChild(whiteSeg); }
   wrap.appendChild(label);
 }
@@ -2640,6 +2640,7 @@ function rerenderBoardOnly(){
 }
 
 function isDraggable(square){
+  if (freePlayMode) return !!chess.get(square) && chess.get(square).color === chess.turn();
   if (!activeOpeningId) return false;
   if (sessionEnded) return false;
   var piece = chess.get(square);
@@ -2726,7 +2727,7 @@ function finalizeMove(from, to, promotion){
   var moveResult = chess.move({ from: from, to: to, promotion: promotion || "q" });
   if (!moveResult){ rerenderBoardOnly(); return; }
   lastMove = { from: from, to: to };
-  if (mode === "editor") processEditorMove(moveResult);
+  if (freePlayMode || mode === "editor") processEditorMove(moveResult);
   else processPracticeMove(moveResult, to);
 }
 
@@ -2845,10 +2846,35 @@ function renderMovesSection(o){
   });
   var body = el("div",{class:"moves-body" + (movesOpen ? " open":"")});
   var inner = el("div",{class:"moves-body-inner"});
+  appendEvalBarTo(inner);
   if (!o.tree.children || o.tree.children.length === 0){
     inner.appendChild(el("div",{class:"no-moves"},["Nog geen zetten opgeslagen."]));
   } else {
     inner.appendChild(buildMoveTreeDom(o.tree, 0));
+  }
+  body.appendChild(inner);
+  section.appendChild(header);
+  section.appendChild(body);
+  return section;
+}
+function renderFreePlayMovesSection(){
+  var section = el("div",{class:"moves-section"});
+  var header = el("div",{class:"moves-header" + (movesOpen ? " open":"")},[
+    el("span",{},["Zetten"]),
+    el("span",{class:"chev"},["\u25BC"])
+  ]);
+  header.addEventListener("click", function(){
+    movesOpen = !movesOpen;
+    header.classList.toggle("open", movesOpen);
+    body.classList.toggle("open", movesOpen);
+  });
+  var body = el("div",{class:"moves-body" + (movesOpen ? " open":"")});
+  var inner = el("div",{class:"moves-body-inner"});
+  appendEvalBarTo(inner);
+  if (!freePlayTree.children || freePlayTree.children.length === 0){
+    inner.appendChild(el("div",{class:"no-moves"},["Nog geen zetten gespeeld."]));
+  } else {
+    inner.appendChild(buildMoveTreeDom(freePlayTree, 0));
   }
   body.appendChild(inner);
   section.appendChild(header);
@@ -2888,10 +2914,28 @@ function makeMoveSpan(node, ply, forceDots){
   return span;
 }
 
-/* ================= INIT ================= */
-openings = loadOpenings();
-(function pickInitialOpening(){
-  if (openings.length === 0) return;
+/* ---------- Free play (Schaken) ---------- */
+function startFreePlay(){
+  freePlayMode = true;
+  practiceAllMode = false;
+  drawerOpen = false;
+  activeOpeningId = null;
+  freePlayTree = { san: null, fen: START_FEN, children: [], parent: null };
+  currentNode = freePlayTree;
+  chess.reset();
+  boardFlipped = false;
+  lastMove = null;
+  movesOpen = false;
+  render();
+}
+function restoreLastOpening(){
+  if (openings.length === 0){
+    activeOpeningId = null;
+    currentNode = null;
+    chess.reset();
+    boardFlipped = false;
+    return;
+  }
   var sorted = openings.slice().sort(function(a,b){
     return (b.lastOpenedAt || b.createdAt) - (a.lastOpenedAt || a.createdAt);
   });
@@ -2902,9 +2946,17 @@ openings = loadOpenings();
   currentNode = o.tree;
   chess.load(o.tree.fen);
   boardFlipped = (trainColor === "b");
-})();
+}
+
+/* ================= INIT ================= */
+openings = loadOpenings();
+freePlayMode = true;
+activeOpeningId = null;
+freePlayTree = { san: null, fen: START_FEN, children: [], parent: null };
+currentNode = freePlayTree;
+chess.reset();
+boardFlipped = false;
 render();
-if (activeOpeningId && mode === "practice") maybeAutoPlayOpponent();
 
 })();
 
