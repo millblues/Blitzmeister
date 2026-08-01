@@ -94,13 +94,20 @@ input,textarea{font-family:inherit;}
 /* ---------- Card / Info panel ---------- */
 .info-card{
   background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-lg);
-  padding:20px;margin:0 20px 16px;box-shadow:var(--shadow);
+  padding:20px;margin:0 20px 16px;box-shadow:var(--shadow);transition:background .3s ease;
 }
+.info-card.info-card-complete{background:var(--green);border-color:var(--green);}
+.info-card.info-card-complete .info-title{color:#fff;}
+.info-card.info-card-complete .info-text{color:rgba(255,255,255,0.92);}
+.info-card.info-card-complete .progressbar{background:rgba(255,255,255,0.32);}
+.info-card-next-row{display:flex;justify-content:flex-end;margin-top:14px;}
+.btn-next-arrow{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.22);border:none;color:#fff;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s ease;}
+.btn-next-arrow:active{background:rgba(255,255,255,0.4);}
 .info-title{font-weight:800;font-size:18px;margin:0 0 6px;}
 .info-text{color:var(--ink-muted);font-size:14.5px;line-height:1.45;margin:0 0 14px;}
 .progressbar{height:7px;background:var(--card-border);border-radius:99px;overflow:hidden;margin-bottom:8px;}
 .progressbar > div{height:100%;background:var(--ink-faint);border-radius:99px;transition:width .25s ease, background .25s ease;}
-.progressbar > div.complete{background:var(--green);}
+.progressbar > div.complete{background:#fff;}
 .progress-label{font-size:12.5px;color:var(--ink-muted);text-align:right;margin-bottom:14px;}
 
 /* ---------- Trainer top ---------- */
@@ -168,6 +175,10 @@ input,textarea{font-family:inherit;}
 .mv{cursor:pointer;padding:1px 3px;border-radius:5px;color:var(--ink);}
 .mv:hover{background:var(--green-soft);}
 .mv.current{background:var(--green);color:#fff;font-weight:700;}
+.mv.mv-black{font-weight:700;}
+.mv-group{display:inline-flex;align-items:center;gap:1px;}
+.mv-comment-icon{font-size:11px;opacity:.28;cursor:pointer;padding:0 3px;filter:grayscale(1);}
+.mv-comment-icon.has-comment{opacity:1;filter:none;}
 .mv-num{color:var(--ink-faint);margin-right:2px;}
 .variation{color:var(--ink-muted);font-size:14px;}
 .no-moves{color:var(--ink-faint);font-size:14px;padding:2px 0;}
@@ -2056,11 +2067,11 @@ function newOpeningObj(name){
     name: name || "Naamloze opening",
     trainColor: "w",
     createdAt: Date.now(),
-    tree: { san: null, fen: START_FEN, children: [], parent: null }
+    tree: { san: null, fen: START_FEN, children: [], parent: null, comment: "" }
   };
 }
 function cloneTreeNode(node, parent){
-  var copy = { san: node.san, fen: node.fen, children: [], parent: parent || null };
+  var copy = { san: node.san, fen: node.fen, comment: node.comment || "", children: [], parent: parent || null };
   copy.children = (node.children || []).map(function(c){ return cloneTreeNode(c, copy); });
   return copy;
 }
@@ -2090,9 +2101,10 @@ function getActiveOpening(){
 
 /* ---------- PGN parse ---------- */
 function parsePGNToTree(pgnText){
+  var comments = [];
   var text = pgnText
     .replace(/\[[^\]]*\]/g, " ")
-    .replace(/\{[^}]*\}/g, " ")
+    .replace(/\{([^}]*)\}/g, function(_, c){ comments.push(c.trim()); return " \u0001" + (comments.length-1) + "\u0001 "; })
     .replace(/\$\d+/g, " ")
     .replace(/\d+\.(\.\.)?/g, " ")
     .replace(/\(/g, " ( ")
@@ -2100,7 +2112,7 @@ function parsePGNToTree(pgnText){
   var rawTokens = text.split(/\s+/).filter(Boolean);
   var tokens = rawTokens.filter(function(t){ return !/^(1-0|0-1|1\/2-1\/2|\*)$/.test(t); });
 
-  var root = { san:null, fen: START_FEN, children: [], parent: null };
+  var root = { san:null, fen: START_FEN, children: [], parent: null, comment: "" };
 
   function parseSeq(pos, startNode){
     var cur = startNode;
@@ -2115,13 +2127,19 @@ function parsePGNToTree(pgnText){
       if (t === ")"){
         return { pos: pos+1, node: cur };
       }
+      var commentMatch = /^\u0001(\d+)\u0001$/.exec(t);
+      if (commentMatch){
+        cur.comment = comments[parseInt(commentMatch[1],10)] || "";
+        pos++;
+        continue;
+      }
       var tmp = new Chess(cur.fen);
       var mv = tmp.move(t, { sloppy: true });
       if (!mv){ pos++; continue; }
       var child = null;
       for (var i=0;i<cur.children.length;i++){ if (cur.children[i].san === mv.san){ child = cur.children[i]; break; } }
       if (!child){
-        child = { san: mv.san, fen: tmp.fen(), children: [], parent: cur };
+        child = { san: mv.san, fen: tmp.fen(), children: [], parent: cur, comment: "" };
         cur.children.push(child);
       }
       prev = cur;
@@ -2140,15 +2158,19 @@ function moveNumTag(ply, forceDots){
   if (ply % 2 === 0) return num + ". ";
   return forceDots ? (num + "... ") : "";
 }
+function sanWithComment(node){
+  var c = (node.comment || "").trim();
+  return node.san + (c ? " {" + c.replace(/[{}]/g,"") + "}" : "");
+}
 function buildMovetext(node, ply){
   if (!node.children || node.children.length === 0) return "";
   var main = node.children[0];
   var parts = [];
-  parts.push(moveNumTag(ply, false) + main.san);
+  parts.push(moveNumTag(ply, false) + sanWithComment(main));
   for (var i=1;i<node.children.length;i++){
     var alt = node.children[i];
     var inner = buildMovetext(alt, ply+1);
-    parts.push("(" + moveNumTag(ply, true) + alt.san + (inner ? " " + inner : "") + ")");
+    parts.push("(" + moveNumTag(ply, true) + sanWithComment(alt) + (inner ? " " + inner : "") + ")");
   }
   var rest = buildMovetext(main, ply+1);
   if (rest) parts.push(rest);
@@ -2428,10 +2450,6 @@ function startPracticeAll(){
   drawerOpen = false;
   pickRandomPractice();
 }
-function stopPracticeAll(){
-  practiceAllMode = false;
-  render();
-}
 function pickRandomPractice(){
   var eligible = practicableOpenings();
   if (eligible.length === 0){ practiceAllMode = false; render(); return; }
@@ -2451,18 +2469,10 @@ function pickRandomPractice(){
 }
 function handleSessionComplete(){
   render();
-  if (practiceAllMode){
-    setTimeout(function(){
-      if (practiceAllMode) pickRandomPractice();
-    }, 1400);
-  } else if (mode === "practice" && activeOpeningId && !freePlayMode){
-    var openingIdAtCompletion = activeOpeningId;
-    setTimeout(function(){
-      if (mode === "practice" && activeOpeningId === openingIdAtCompletion && !practiceAllMode && !freePlayMode && sessionEnded){
-        resetSession();
-      }
-    }, 1400);
-  }
+}
+function goToNextExercise(){
+  if (practiceAllMode) pickRandomPractice();
+  else resetSession();
 }
 
 function renderMainScreen(){
@@ -2505,13 +2515,6 @@ function renderMainScreen(){
     return;
   }
 
-  if (practiceAllMode){
-    app.appendChild(el("div",{class:"practice-all-bar"},[
-      el("span",{},["Willekeurige oefening"]),
-      el("button",{class:"btn btn-sm", onclick: stopPracticeAll},["Stoppen"])
-    ]));
-  }
-
   app.appendChild(renderMovesSection(o));
 
   app.appendChild(renderBoardWrap());
@@ -2525,11 +2528,10 @@ function renderMainScreen(){
       el("button",{class:"btn", style:"flex:1;", onclick: editorStepBack, disabled: currentNode===o.tree},["\u2190 Terug"]),
       el("button",{class:"btn btn-danger", style:"flex:1;", onclick: editorDeleteHere, disabled: currentNode===o.tree},["Zet verwijderen"])
     ]));
+    app.appendChild(el("div",{class:"actions-row"},[
+      el("button",{class:"btn btn-block", onclick: resetSession},["\u21BA Opnieuw"])
+    ]));
   }
-
-  app.appendChild(el("div",{class:"actions-row"},[
-    el("button",{class:"btn btn-block", onclick: resetSession},["\u21BA Opnieuw"])
-  ]));
 }
 
 function renderInfoCard(o){
@@ -2537,11 +2539,23 @@ function renderInfoCard(o){
   var longest = maxDepth(o.tree);
   var pct = longest === 0 ? 0 : Math.min(100, Math.round((depth/longest)*100));
   var complete = sessionEnded;
-  var card = el("div",{class:"info-card"},[
-    el("div",{class:"info-title"},[o.name + " - Jij speelt " + (trainColor==="w" ? "Wit" : "Zwart")]),
-    el("div",{class:"progressbar"},[el("div",{class: complete ? "complete" : "", style:"width:"+pct+"%"})]),
-    el("div",{class:"progress-label"},[depth + " / " + longest + " zetten"])
-  ]);
+  var title = complete
+    ? (o.name + " - Voltooid")
+    : (o.name + " - Jij speelt " + (trainColor==="w" ? "Wit" : "Zwart"));
+  var children = [
+    el("div",{class:"info-title"},[title]),
+    el("div",{class:"progressbar"},[el("div",{class: complete ? "complete" : "", style:"width:"+pct+"%"})])
+  ];
+  var comment = currentNode && currentNode.comment ? currentNode.comment.trim() : "";
+  if (complete && comment){
+    children.push(el("p",{class:"info-text", style:"margin-top:12px;"},[comment]));
+  }
+  if (complete){
+    children.push(el("div",{class:"info-card-next-row"},[
+      el("button",{class:"btn-next-arrow", onclick: goToNextExercise, title:"Volgende oefening"},["\u2192"])
+    ]));
+  }
+  var card = el("div",{class:"info-card" + (complete ? " info-card-complete" : "")}, children);
   return card;
 }
 /* ---------- Board rendering ---------- */
@@ -2755,7 +2769,7 @@ function processEditorMove(moveResult){
     if (currentNode.children[i].san === moveResult.san){ child = currentNode.children[i]; break; }
   }
   if (!child){
-    child = { san: moveResult.san, fen: chess.fen(), children: [], parent: currentNode };
+    child = { san: moveResult.san, fen: chess.fen(), children: [], parent: currentNode, comment: "" };
     currentNode.children.push(child);
   }
   currentNode = child;
@@ -2904,14 +2918,46 @@ function buildMoveTreeDom(node, ply){
 function makeMoveSpan(node, ply, forceDots){
   var num = Math.floor(ply/2)+1;
   var prefix = (ply % 2 === 0) ? (num + ". ") : (forceDots ? (num + "... ") : "");
-  var span = el("span",{class:"mv" + (node===currentNode ? " current":"")},[prefix + node.san]);
+  var group = el("span",{class:"mv-group"});
+  var isBlackMove = (ply % 2 === 1);
+  var span = el("span",{class:"mv" + (isBlackMove ? " mv-black" : "") + (node===currentNode ? " current":"")},[prefix + node.san]);
   span.addEventListener("click", function(){
     currentNode = node;
     chess.load(node.fen);
     lastMove = null;
     render();
   });
-  return span;
+  var hasComment = !!(node.comment && node.comment.trim());
+  var icon = el("span",{class:"mv-comment-icon" + (hasComment ? " has-comment" : ""), title:"Toelichting"},["\uD83D\uDCAC"]);
+  icon.addEventListener("click", function(ev){
+    ev.stopPropagation();
+    openCommentModal(node);
+  });
+  group.appendChild(span);
+  group.appendChild(icon);
+  return group;
+}
+function openCommentModal(node){
+  var overlay = el("div",{class:"modal-overlay center"});
+  var textarea = el("textarea",{class:"text-input", placeholder:"Toelichting bij deze zet\u2026"});
+  textarea.value = node.comment || "";
+  textarea.style.minHeight = "90px";
+  var sheet = el("div",{class:"modal-sheet"},[
+    el("div",{class:"modal-title"},["Toelichting \u2014 " + node.san]),
+    textarea,
+    el("div",{class:"modal-actions"},[
+      el("button",{class:"btn", style:"flex:1;", onclick:function(){ overlay.remove(); }},["Annuleren"]),
+      el("button",{class:"btn btn-primary", style:"flex:1;", onclick:function(){
+        node.comment = textarea.value.trim();
+        if (activeOpeningId) saveOpenings();
+        overlay.remove();
+        render();
+      }},["Opslaan"])
+    ])
+  ]);
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+  setTimeout(function(){ textarea.focus(); }, 50);
 }
 
 /* ---------- Free play (Schaken) ---------- */
@@ -2920,7 +2966,7 @@ function startFreePlay(){
   practiceAllMode = false;
   drawerOpen = false;
   activeOpeningId = null;
-  freePlayTree = { san: null, fen: START_FEN, children: [], parent: null };
+  freePlayTree = { san: null, fen: START_FEN, children: [], parent: null, comment: "" };
   currentNode = freePlayTree;
   chess.reset();
   boardFlipped = false;
@@ -2952,7 +2998,7 @@ function restoreLastOpening(){
 openings = loadOpenings();
 freePlayMode = true;
 activeOpeningId = null;
-freePlayTree = { san: null, fen: START_FEN, children: [], parent: null };
+freePlayTree = { san: null, fen: START_FEN, children: [], parent: null, comment: "" };
 currentNode = freePlayTree;
 chess.reset();
 boardFlipped = false;
