@@ -2212,9 +2212,7 @@ function renderDrawer(){
 
   var sec = el("div",{class:"section-pad"});
   var actions = el("div",{class:"lib-actions"},[
-    el("button",{class:"btn btn-primary btn-block", onclick: startFreePlay},["Schaken"]),
-    el("button",{class:"btn btn-primary btn-block", onclick: startPracticeAll},["Willekeurige oefening"]),
-    el("button",{class:"btn btn-primary btn-block", onclick:function(){ openNewOpeningModal(); }},["\uFF0B Nieuwe opening"])
+    el("button",{class:"btn btn-primary btn-block", onclick: startFreePlay},["Schaakbord"])
   ]);
   sec.appendChild(actions);
 
@@ -2222,7 +2220,7 @@ function renderDrawer(){
   if (openings.length === 0){
     list.appendChild(el("div",{class:"empty-state"},[
       el("div",{class:"es-icon"},["\u265E"]),
-      el("div",{},["Nog geen openingen. Maak je eerste opening aan."])
+      el("div",{},["Nog geen openingen. Speel op het schaakbord en sla je partij op als opening."])
     ]));
   } else {
     openings.slice().sort(function(a,b){return b.createdAt-a.createdAt;}).forEach(function(o){
@@ -2230,6 +2228,10 @@ function renderDrawer(){
     });
   }
   sec.appendChild(list);
+
+  sec.appendChild(el("div",{class:"lib-actions"},[
+    el("button",{class:"btn btn-block", onclick: startPracticeAll},["Random opening"])
+  ]));
 
   var fileActions = el("div",{class:"row-gap"},[
     el("button",{class:"btn", onclick: downloadAllOpenings},["Download"]),
@@ -2325,8 +2327,13 @@ function openNewOpeningModal(presetTree){
       openings.push(o);
       saveOpenings();
       overlay.remove();
-      drawerOpen = false;
-      openTrainer(o.id, "editor");
+      if (presetTree){
+        showToast("\u201C" + o.name + "\u201D opgeslagen");
+        render();
+      } else {
+        drawerOpen = false;
+        openTrainer(o.id, "editor");
+      }
     }},["Aanmaken"])
   ]));
   overlay.appendChild(sheet);
@@ -2487,7 +2494,8 @@ function renderMainScreen(){
   ]);
   var top = el("div",{class:"trainer-top"},[
     el("button",{class:"btn btn-icon", onclick: toggleDrawer, title:"Menu"},["\u2630"]),
-    brandEl
+    brandEl,
+    el("button",{class:"btn btn-icon", style:"margin-left:auto;", onclick:function(){ boardFlipped = !boardFlipped; render(); }, title:"Bord draaien"},["\u21BB"])
   ]);
   app.appendChild(top);
 
@@ -2496,7 +2504,6 @@ function renderMainScreen(){
     app.appendChild(renderBoardWrap());
     app.appendChild(el("div",{class:"actions-row"},[
       el("button",{class:"btn", style:"flex:1;", onclick: editorStepBack, disabled: currentNode===freePlayTree},["\u2190 Terug"]),
-      el("button",{class:"btn", style:"flex:1;", onclick:function(){ boardFlipped = !boardFlipped; render(); }},["Bord draaien"]),
       el("button",{class:"btn btn-danger", style:"flex:1;", onclick: editorDeleteHere, disabled: currentNode===freePlayTree},["Zet verwijderen"])
     ]));
     app.appendChild(el("div",{class:"actions-row"},[
@@ -2508,8 +2515,8 @@ function renderMainScreen(){
   if (!o){
     app.appendChild(el("div",{class:"info-card"},[
       el("div",{class:"info-title"},["Welkom bij BlitzMeister"]),
-      el("p",{class:"info-text"},["Je hebt nog geen opening geopend. Maak een nieuwe opening aan, of kies er een via het menu linksboven."]),
-      el("button",{class:"btn btn-primary btn-block", onclick:function(){ openNewOpeningModal(); }},["\uFF0B Nieuwe opening"])
+      el("p",{class:"info-text"},["Je hebt nog geen opening geopend. Speel op het schaakbord, of kies een opening via het menu linksboven."]),
+      el("button",{class:"btn btn-primary btn-block", onclick: startFreePlay},["Naar het schaakbord"])
     ]));
     app.appendChild(renderBoardWrap());
     return;
@@ -2527,9 +2534,6 @@ function renderMainScreen(){
     app.appendChild(el("div",{class:"actions-row"},[
       el("button",{class:"btn", style:"flex:1;", onclick: editorStepBack, disabled: currentNode===o.tree},["\u2190 Terug"]),
       el("button",{class:"btn btn-danger", style:"flex:1;", onclick: editorDeleteHere, disabled: currentNode===o.tree},["Zet verwijderen"])
-    ]));
-    app.appendChild(el("div",{class:"actions-row"},[
-      el("button",{class:"btn btn-block", onclick: resetSession},["\u21BA Opnieuw"])
     ]));
   }
 }
