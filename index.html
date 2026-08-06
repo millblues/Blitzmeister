@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="mobile-web-app-capable" content="yes">
 <title>BlitzMeister</title>
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="favicon.png">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
 <style>
 :root{
   --bg:#F1EFE5;
@@ -136,6 +136,7 @@ input,textarea{font-family:inherit;}
 .square.hi-from{background:var(--board-light-hi) !important;}
 .square.hi-to{background:var(--board-light-hi) !important;}
 .square.dark.hi-from,.square.dark.hi-to{background:var(--board-dark-hi) !important;}
+.square.hi-checkmate{background:var(--red) !important;}
 .square .coord{position:absolute;font-size:9.5px;font-weight:700;opacity:.55;top:2px;left:3px;}
 .square.light .coord{color:var(--board-dark);}
 .square.dark .coord{color:var(--board-light);}
@@ -184,6 +185,12 @@ input,textarea{font-family:inherit;}
 .mv-num{color:var(--ink-faint);margin-right:2px;}
 .variation{color:var(--ink-muted);font-size:14px;}
 .no-moves{color:var(--ink-faint);font-size:14px;padding:2px 0;}
+.moves-table{display:flex;flex-direction:column;font-size:15px;}
+.mrow{display:grid;grid-template-columns:26px 1fr 1fr;align-items:center;padding:2px 0;column-gap:4px;}
+.mrow-num{color:var(--ink-faint);font-size:12.5px;font-weight:700;}
+.mrow-cell{min-width:0;}
+.variation-block{font-size:12.5px;color:var(--ink-muted);line-height:1.6;padding:1px 0 6px 30px;word-break:break-word;}
+.variation-block .mv{padding:0 2px;}
 
 /* ---------- Modal ---------- */
 /* ---------- Library drawer ---------- */
@@ -2000,6 +2007,7 @@ var boardFlipped = false;
 var stats = { correct: 0, incorrect: 0 };
 var movesOpen = false;
 var lastMove = null; // {from,to} for highlight
+var practiceInputLocked = false;
 var currentEval = { winChance: 50, mate: null, eval: 0 };
 var lastEvalFen = null;
 var evalRequestSeq = 0;
@@ -2179,7 +2187,8 @@ function buildMovetext(node, ply){
   return parts.join(" ");
 }
 function openingToPGN(opening){
-  var headers = '[Event "' + opening.name.replace(/"/g,"'") + '"]\n[Site "BlitzMeister"]\n[Result "*"]\n\n';
+  var trainAs = opening.trainColor === "b" ? "Black" : "White";
+  var headers = '[Event "' + opening.name.replace(/"/g,"'") + '"]\n[Site "BlitzMeister"]\n[Result "*"]\n[TrainColor "' + trainAs + '"]\n\n';
   var body = buildMovetext(opening.tree, 0);
   return headers + (body || "") + " *";
 }
@@ -2406,8 +2415,11 @@ function importCombinedPGN(text){
     if (!tree.children || tree.children.length === 0) return;
     var nameMatch = block.match(/\[Event\s+"([^"]*)"\]/i);
     var name = (nameMatch && nameMatch[1].trim()) ? nameMatch[1].trim() : "Ge\u00efmporteerde opening " + (i+1);
+    var colorMatch = block.match(/\[TrainColor\s+"([^"]*)"\]/i);
+    var trainColorVal = (colorMatch && /black/i.test(colorMatch[1])) ? "b" : "w";
     var o = newOpeningObj(name);
     o.tree = tree;
+    o.trainColor = trainColorVal;
     openings.push(o);
     importedCount++;
   });
@@ -2433,6 +2445,7 @@ function openTrainer(id, startMode){
   stats = { correct:0, incorrect:0 };
   movesOpen = false;
   sessionEnded = false;
+  practiceInputLocked = false;
   render();
   if (mode === "practice") maybeAutoPlayOpponent();
 }
@@ -2441,6 +2454,7 @@ function resetSession(){
   currentNode = o.tree;
   chess.load(o.tree.fen);
   sessionEnded = false;
+  practiceInputLocked = false;
   if (mode === "practice"){ stats = { correct:0, incorrect:0 }; boardFlipped = (trainColor === "b"); }
   lastMove = null;
   render();
@@ -2472,6 +2486,7 @@ function pickRandomPractice(){
   stats = { correct:0, incorrect:0 };
   movesOpen = false;
   sessionEnded = false;
+  practiceInputLocked = false;
   lastMove = null;
   render();
   maybeAutoPlayOpponent();
@@ -2550,7 +2565,7 @@ function renderInfoCard(o){
     : (o.name + " - Jij speelt " + (trainColor==="w" ? "Wit" : "Zwart"));
   var children = [
     el("div",{class:"info-title"},[title]),
-    el("div",{class:"progressbar"},[el("div",{class: complete ? "complete" : "", style:"width:"+pct+"%"})])
+    el("div",{class:"progressbar"},[el("div",{id:"progressbar-fill", class: complete ? "complete" : "", style:"width:"+pct+"%"})])
   ];
   var comment = currentNode && currentNode.comment ? currentNode.comment.trim() : "";
   if (complete && comment){
@@ -2627,6 +2642,20 @@ function buildBoardSquares(board){
   for (var c=0;c<8;c++) cols.push(c);
   if (boardFlipped){ rows.reverse(); cols.reverse(); }
 
+  var mateSquare = null;
+  if (chess.in_checkmate && chess.in_checkmate()){
+    var matedColor = chess.turn();
+    for (var rr=0; rr<8 && !mateSquare; rr++){
+      for (var cc=0; cc<8; cc++){
+        var p = pos[rr][cc];
+        if (p && p.type === "k" && p.color === matedColor){
+          mateSquare = FILES[cc] + (8-rr);
+          break;
+        }
+      }
+    }
+  }
+
   rows.forEach(function(r){
     cols.forEach(function(c){
       var fileIdx = c;
@@ -2636,6 +2665,7 @@ function buildBoardSquares(board){
       var sqEl = el("div",{class:"square " + (light ? "light":"dark"), "data-square": squareName});
       if (lastMove && (lastMove.from === squareName)) sqEl.classList.add("hi-from");
       if (lastMove && (lastMove.to === squareName)) sqEl.classList.add("hi-to");
+      if (mateSquare === squareName) sqEl.classList.add("hi-checkmate");
       // coords
       if (c === (boardFlipped?7:0)){
         sqEl.appendChild(el("span",{class:"coord"},[String(rankNum)]));
@@ -2660,6 +2690,7 @@ function rerenderBoardOnly(){
 }
 
 function isDraggable(square){
+  if (practiceInputLocked) return false;
   if (freePlayMode) return !!chess.get(square) && chess.get(square).color === chess.turn();
   if (!activeOpeningId) return false;
   if (sessionEnded) return false;
@@ -2822,9 +2853,29 @@ function processPracticeMove(moveResult, to){
     stats.incorrect++;
     chess.undo();
     lastMove = null;
+    practiceInputLocked = true;
     render();
     flashSquare(to, false);
+    flashProgressBarRed();
+    setTimeout(function(){
+      practiceInputLocked = false;
+      render();
+    }, 500);
   }
+}
+function flashProgressBarRed(){
+  var bar = document.getElementById("progressbar-fill");
+  if (!bar) return;
+  var originalWidth = bar.style.width;
+  bar.style.transition = "none";
+  bar.style.width = "100%";
+  bar.style.background = "#C24F3D";
+  void bar.offsetWidth; // force reflow so the style change is applied before we revert it
+  setTimeout(function(){
+    bar.style.transition = "";
+    bar.style.width = originalWidth;
+    bar.style.background = "";
+  }, 500);
 }
 function flashSquare(square, correct){
   var sqEl = document.querySelector('.square[data-square="'+square+'"]');
@@ -2870,7 +2921,7 @@ function renderMovesSection(o){
   if (!o.tree.children || o.tree.children.length === 0){
     inner.appendChild(el("div",{class:"no-moves"},["Nog geen zetten opgeslagen."]));
   } else {
-    inner.appendChild(buildMoveTreeDom(o.tree, 0));
+    inner.appendChild(buildMainLineTable(o.tree));
   }
   body.appendChild(inner);
   section.appendChild(header);
@@ -2894,12 +2945,60 @@ function renderFreePlayMovesSection(){
   if (!freePlayTree.children || freePlayTree.children.length === 0){
     inner.appendChild(el("div",{class:"no-moves"},["Nog geen zetten gespeeld."]));
   } else {
-    inner.appendChild(buildMoveTreeDom(freePlayTree, 0));
+    inner.appendChild(buildMainLineTable(freePlayTree));
   }
   body.appendChild(inner);
   section.appendChild(header);
   section.appendChild(body);
   return section;
+}
+/* Main line: vertical rows (number | white | black). Variations: compact horizontal blocks under the row they branch from. */
+function buildMainLineTable(root){
+  var table = el("div",{class:"moves-table"});
+  var node = root;
+  var ply = 0;
+  while (node.children && node.children.length > 0){
+    var moveNum = Math.floor(ply/2) + 1;
+    var white = node.children[0];
+    var whiteAlts = node.children.slice(1);
+    var black = null, blackAlts = [];
+    if (white.children && white.children.length > 0){
+      black = white.children[0];
+      blackAlts = white.children.slice(1);
+    }
+
+    var row = el("div",{class:"mrow"});
+    row.appendChild(el("div",{class:"mrow-num"},[String(moveNum)]));
+    row.appendChild(makeMoveCell(white, false));
+    row.appendChild(black ? makeMoveCell(black, true) : el("div",{class:"mrow-cell"}));
+    table.appendChild(row);
+
+    whiteAlts.forEach(function(alt){
+      table.appendChild(buildVariationBlock(alt, ply, true));
+    });
+    blackAlts.forEach(function(alt){
+      table.appendChild(buildVariationBlock(alt, ply+1, true));
+    });
+
+    if (!black) break;
+    node = black;
+    ply += 2;
+  }
+  return table;
+}
+function buildVariationBlock(altNode, ply, forceDots){
+  var wrap = el("div",{class:"variation-block"});
+  wrap.appendChild(document.createTextNode("("));
+  wrap.appendChild(makeMoveSpan(altNode, ply, forceDots));
+  wrap.appendChild(document.createTextNode(" "));
+  wrap.appendChild(buildMoveTreeDom(altNode, ply+1));
+  wrap.appendChild(document.createTextNode(")"));
+  return wrap;
+}
+function makeMoveCell(node, isBlack){
+  var cell = el("div",{class:"mrow-cell"});
+  cell.appendChild(makeMoveSpanBare(node, isBlack));
+  return cell;
 }
 function buildMoveTreeDom(node, ply){
   var frag = document.createDocumentFragment();
@@ -2921,12 +3020,9 @@ function buildMoveTreeDom(node, ply){
   frag.appendChild(buildMoveTreeDom(main, ply+1));
   return frag;
 }
-function makeMoveSpan(node, ply, forceDots){
-  var num = Math.floor(ply/2)+1;
-  var prefix = (ply % 2 === 0) ? (num + ". ") : (forceDots ? (num + "... ") : "");
+function makeMoveSpanBare(node, isBlack){
   var group = el("span",{class:"mv-group"});
-  var isBlackMove = (ply % 2 === 1);
-  var span = el("span",{class:"mv" + (isBlackMove ? " mv-black" : "") + (node===currentNode ? " current":"")},[prefix + node.san]);
+  var span = el("span",{class:"mv" + (isBlack ? " mv-black" : "") + (node===currentNode ? " current":"")},[node.san]);
   span.addEventListener("click", function(){
     currentNode = node;
     chess.load(node.fen);
@@ -2941,6 +3037,15 @@ function makeMoveSpan(node, ply, forceDots){
   });
   group.appendChild(span);
   group.appendChild(icon);
+  return group;
+}
+function makeMoveSpan(node, ply, forceDots){
+  var num = Math.floor(ply/2)+1;
+  var prefix = (ply % 2 === 0) ? (num + ". ") : (forceDots ? (num + "... ") : "");
+  var isBlackMove = (ply % 2 === 1);
+  var group = makeMoveSpanBare(node, isBlackMove);
+  var span = group.querySelector(".mv");
+  span.textContent = prefix + node.san;
   return group;
 }
 function openCommentModal(node){
